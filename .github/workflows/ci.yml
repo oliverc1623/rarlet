@@ -1,0 +1,84 @@
+name: CI
+
+on:
+  pull_request:
+  push: 
+    branches: 
+      - main
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: read
+  checks: write
+
+jobs:
+  run_tests:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install Poetry
+      run: |
+        pipx install poetry
+      shell: bash
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
+      with:
+        python-version: 3.11
+        cache: poetry
+    - name: Install dependencies
+      run: |
+        poetry install
+    - name: Test with pytest and generate coverage report
+      id: test
+      run: |
+        poetry run invoke checks
+        coverage=$(<htmlcov/index.md)
+        EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
+        echo "coverage<<EOF" >> $GITHUB_OUTPUT
+        echo "$coverage" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+    - name: Publish Test Results
+      uses: EnricoMi/publish-unit-test-result-action@v2
+      if: github.event_name == 'pull_request'
+      with:
+        files: |
+          test-results.xml
+    - uses: actions/github-script@v6
+      if: github.event_name == 'pull_request'
+      with:
+        script: |
+          const issue_number = context.issue.number;
+          const owner = context.repo.owner;
+          const repo = context.repo.repo;
+    
+          // Get the list of comments on the PR.
+          const comments = await github.rest.issues.listComments({
+            owner: owner,
+            repo: repo,
+            issue_number: issue_number
+          });
+    
+          // Check if there's an existing comment from the GitHub Actions bot.
+          const comment = comments.data.find(comment => comment.user.login === 'github-actions[bot]' && comment.body.startsWith('## Coverage Summary'));
+
+          const body = `${{ steps.test.outputs.coverage }}`;
+    
+          if (comment) {
+            // If there is, update that comment.
+            await github.rest.issues.updateComment({
+              owner: owner,
+              repo: repo,
+              comment_id: comment.id,
+              body: body
+            });
+          } else {
+            // If there isn't, create a new comment.
+            await github.rest.issues.createComment({
+              owner: owner,
+              repo: repo,
+              issue_number: issue_number,
+              body: body
+            });
+          }
