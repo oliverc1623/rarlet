@@ -3,3 +3,4 @@
 *.vscode
 # Poetry lock file
 poetry.lock
+*.snet
