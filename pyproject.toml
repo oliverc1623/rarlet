@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 
 [tool.poetry]
-name = "RARLET"
+name = "rarlet"
 version = "0.1.0"
 description = "RL and Data-Driven Discovery of Adversarial Vehicle Maneuvers"
 authors = ["Luis Burbano, Diego Ortiz, Prof. Alvaro Cardenas, Oliver Chang"]

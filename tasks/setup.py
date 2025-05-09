@@ -21,7 +21,7 @@ def rename_pyproject_toml() -> str:
     description = description.strip()
     version = input("Version [0.1.0]: ") or "0.1.0"
     version = version.strip()
-    author = input("Author [Vince Faller]: ") or "Vince Faller"
+    author = input("Author [Oliver Chang]: ") or "Oliver Chang"
     author = author.strip()
 
     with (root_dir / "pyproject.toml").open("r") as f:

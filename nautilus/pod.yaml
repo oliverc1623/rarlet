@@ -13,10 +13,9 @@ spec:
       - |
         cd ~ && \
         git clone https://$(GIT_USERNAME):$(GIT_TOKEN)@github.com/oliverc1623/RARLET.git && cd RARLET && \
-        chmod +x nautilus/setup.sh && ./nautilus/setup.sh && \
         cd Scenic && git submodule update --init && \
-        git pull origin main && pip install -e . && \
-        cd .. && \
+        git pull origin main && cd .. && \
+        chmod +x nautilus/setup.sh && ./nautilus/setup.sh && \
         sleep infinity
     volumeMounts: 
     - mountPath: /pvcvolume
