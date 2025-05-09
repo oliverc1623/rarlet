@@ -1,4 +1,4 @@
-def pytest_collection_modifyitems(config, items) -> None:  # noqa: ANN001
+def pytest_collection_modifyitems(config, items) -> None:  # noqa: ANN001, ARG001
     """Fail tests marked with 'skipci' without a reason."""
     for item in items:
         marker = item.get_closest_marker("skipci")
