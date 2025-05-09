@@ -1,6 +1,6 @@
 *.csv 
 *__pycache__
 *.vscode
+*.snet
 # Poetry lock file
 poetry.lock
-*.snet
