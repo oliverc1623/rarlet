@@ -1,2 +1,2 @@
-Robust Adversarial Reinforcement Learning with External Tactics
+RARLET: Robust Adversarial Reinforcement Learning with External Tactics
 
