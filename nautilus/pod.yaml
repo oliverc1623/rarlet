@@ -12,10 +12,11 @@ spec:
     args: 
       - |
         cd ~ && \
-        git clone https://github.com/oliverc1623/RARLET.git && cd RARLET && \
+        git clone https://$(GIT_USERNAME):$(GIT_TOKEN)@github.com/oliverc1623/RARLET.git && cd RARLET && \
         chmod +x nautilus/setup.sh && ./nautilus/setup.sh && \
         cd Scenic && git submodule update --init && \
-        git pull origin main && \
+        git pull origin main && pip install -e . && \
+        cd .. && \
         sleep infinity
     volumeMounts: 
     - mountPath: /pvcvolume
@@ -32,11 +33,16 @@ spec:
         cpu: "16"
         nvidia.com/rtxa6000: "1"
     env:
-    - name: GITHUB_TOKEN
-      valueFrom:
-        secretKeyRef:
-          name: github-token
-          key: token
+      - name: GIT_USERNAME
+        valueFrom:
+          secretKeyRef:
+            name: github-auth
+            key: username
+      - name: GIT_TOKEN
+        valueFrom:
+          secretKeyRef:
+            name: github-auth
+            key: token
   volumes: 
     - name: elochang-volume
       persistentVolumeClaim: 
