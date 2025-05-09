@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 
 [tool.poetry]
-name = "acc_verifai"
+name = "RARLET"
 version = "0.1.0"
 description = "RL and Data-Driven Discovery of Adversarial Vehicle Maneuvers"
 authors = ["Luis Burbano, Diego Ortiz, Prof. Alvaro Cardenas, Oliver Chang"]
@@ -37,6 +37,7 @@ sumolib = "^1.22.0"
 tensorboard = "^2.18.0"
 wandb = "^0.19.1"
 tyro = "^0.9.16"
+verifai = "^2.1.2"
 
 [[tool.poetry.source]]
 name = "pytorch_cuda"
