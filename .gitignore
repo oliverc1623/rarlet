@@ -2,5 +2,3 @@
 *__pycache__
 *.vscode
 *.snet
-# Poetry lock file
-poetry.lock
