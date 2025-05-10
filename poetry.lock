@@ -1715,8 +1715,8 @@ files = [
 
 [package.dependencies]
 numpy = [
-    {version = "*", markers = "python_version < \"3.12\""},
     {version = ">=1.26.0b1", markers = "python_version >= \"3.12\""},
+    {version = "*", markers = "python_version < \"3.12\""},
 ]
 
 [[package]]
@@ -2354,8 +2354,8 @@ files = [
 
 [package.dependencies]
 numpy = [
-    {version = ">=1.23.5", markers = "python_version >= \"3.11\""},
     {version = ">=1.26.0", markers = "python_version >= \"3.12\""},
+    {version = ">=1.23.5", markers = "python_version == \"3.11\""},
 ]
 
 [[package]]
@@ -2637,8 +2637,8 @@ files = [
 
 [package.dependencies]
 numpy = [
-    {version = ">=1.23.2", markers = "python_version == \"3.11\""},
     {version = ">=1.26.0", markers = "python_version >= \"3.12\""},
+    {version = ">=1.23.2", markers = "python_version == \"3.11\""},
 ]
 python-dateutil = ">=2.8.2"
 pytz = ">=2020.1"
@@ -3349,8 +3349,8 @@ files = [
 [package.dependencies]
 Cython = "*"
 numpy = [
-    {version = "*", markers = "python_version < \"3.12\""},
     {version = ">=1.26.0b1", markers = "python_version >= \"3.12\""},
+    {version = "*", markers = "python_version < \"3.12\""},
 ]
 
 [[package]]
