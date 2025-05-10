@@ -9,7 +9,6 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import gymnasium as gym
-import highway_env  # noqa: F401
 import numpy as np
 import scenic
 import torch
