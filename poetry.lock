@@ -1674,33 +1674,43 @@ source = ["Cython (>=3.0.11,<3.1.0)"]
 
 [[package]]
 name = "manifold3d"
-version = "2.3.0"
+version = "3.0.1"
 description = "Library for geometric robustness"
 optional = false
 python-versions = ">=3.8"
 groups = ["dev"]
 files = [
-    {file = "manifold3d-2.3.0-cp310-cp310-macosx_10_14_x86_64.whl", hash = "sha256:17b648cce1f2eb3e6d1431db3d51ed0bcfd897a0f0c1ff32d5076fb4564e554d"},
-    {file = "manifold3d-2.3.0-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:b1dc2a12cf7ebd4d4e366fa85ec1064afe9005c5682a4fbfd3c15456db63869b"},
-    {file = "manifold3d-2.3.0-cp310-cp310-manylinux_2_28_x86_64.manylinux_2_27_x86_64.whl", hash = "sha256:a11ea90a86f258eea6d5efdc68540d2b6b1ec950f9ab139e7db4b1863db1ffd2"},
-    {file = "manifold3d-2.3.0-cp310-cp310-win_amd64.whl", hash = "sha256:3d4df3f646b8f0d51a452cb91c017a7ae9af76f4d7dcf686c386c4bd7ea3e4b8"},
-    {file = "manifold3d-2.3.0-cp311-cp311-macosx_10_14_x86_64.whl", hash = "sha256:de221ff80a9d9757aec944d42af9816640414a4fece97841c390e6d2f8aa9985"},
-    {file = "manifold3d-2.3.0-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:dbf72e1f0722e11cc18309f1d5b687c568b28e0482530c5289d1842654f98972"},
-    {file = "manifold3d-2.3.0-cp311-cp311-manylinux_2_28_x86_64.manylinux_2_27_x86_64.whl", hash = "sha256:8be1a538bbdede2cda26e184b2f18134d5ef4a2d1f74debc4cbaa3ee853eec42"},
-    {file = "manifold3d-2.3.0-cp311-cp311-win_amd64.whl", hash = "sha256:62278b01348c43c0398b51b481e48168e0636deb929096093409a3f74a3359ca"},
-    {file = "manifold3d-2.3.0-cp312-cp312-macosx_10_14_x86_64.whl", hash = "sha256:2a779a152219593c596b0b9d0e3d311971a888467c13526c1bda39c6e677e63c"},
-    {file = "manifold3d-2.3.0-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:4f351ecd71d786aedb3ac76646b0a5b9272e8287355ca8d06ad1a397f1bd3bcf"},
-    {file = "manifold3d-2.3.0-cp312-cp312-manylinux_2_28_x86_64.manylinux_2_27_x86_64.whl", hash = "sha256:b2e7160af7b9d983b4f32f79425f764a72974a4dcd50af5e7da6f6d45bdf9590"},
-    {file = "manifold3d-2.3.0-cp312-cp312-win_amd64.whl", hash = "sha256:76b1f6116fb5bd321e77ac79bce8742157b98d3dfef411560de211ef5f90aba5"},
-    {file = "manifold3d-2.3.0-cp38-cp38-macosx_10_14_x86_64.whl", hash = "sha256:21d5564ae2066f2a2f26aee2c177cb99f0adb5f814a71b1a1d79c6df315c0b89"},
-    {file = "manifold3d-2.3.0-cp38-cp38-macosx_11_0_arm64.whl", hash = "sha256:30135a60657aced10261184ef09930b1b6e62ba162d525542663fded5d155a05"},
-    {file = "manifold3d-2.3.0-cp38-cp38-manylinux_2_28_x86_64.manylinux_2_27_x86_64.whl", hash = "sha256:24c728aa373a9d1896232b097a0177bab69786e9bfa13ab415ac4cefc56c9b39"},
-    {file = "manifold3d-2.3.0-cp38-cp38-win_amd64.whl", hash = "sha256:03656b3003e168c050d8c8d2eaec465ccb18770f37601f80a16a31771592b5ab"},
-    {file = "manifold3d-2.3.0-cp39-cp39-macosx_10_14_x86_64.whl", hash = "sha256:d6cf888af130e105ea8dc2a23458945286461332786f7dd3b89fbd4e8ca44268"},
-    {file = "manifold3d-2.3.0-cp39-cp39-macosx_11_0_arm64.whl", hash = "sha256:3cffe68dbb58c5b21055a2d518e05884c981cf00d75f86bde8047441d608c734"},
-    {file = "manifold3d-2.3.0-cp39-cp39-manylinux_2_28_x86_64.manylinux_2_27_x86_64.whl", hash = "sha256:7b30baee689189c60b921251adbcf761e93a29e8a4404dc548fa13d135774ff4"},
-    {file = "manifold3d-2.3.0-cp39-cp39-win_amd64.whl", hash = "sha256:c16689a54a232f10dc51d467cfd074a405a560b26ddf56e9eeb81090d6bcb3f1"},
-    {file = "manifold3d-2.3.0.tar.gz", hash = "sha256:f244401672fc955b5280f577ab326af946cc873459c53f619dd561ddd9e12ba4"},
+    {file = "manifold3d-3.0.1-cp310-cp310-macosx_10_14_universal2.whl", hash = "sha256:dacecf291d1adcf52f260d45b77929442092c1210851d32b288abc8e48be70f1"},
+    {file = "manifold3d-3.0.1-cp310-cp310-macosx_10_14_x86_64.whl", hash = "sha256:04c87b0a692e11760a881d65c34a9d3049bae2d53a1fbc8e50002fd31ddf8a11"},
+    {file = "manifold3d-3.0.1-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:295ccee343c934cf30d8428305ada198510bffd73d8b81edf23264be094dc154"},
+    {file = "manifold3d-3.0.1-cp310-cp310-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:d557345b11088721c6d1a89bb2e4942da886ac8d0aecafa721dc224be189f03c"},
+    {file = "manifold3d-3.0.1-cp310-cp310-win_amd64.whl", hash = "sha256:3003364fdf38f8611a0c641c3ba88c532dfc2d82f885feaa3ddf55721c269907"},
+    {file = "manifold3d-3.0.1-cp311-cp311-macosx_10_14_universal2.whl", hash = "sha256:8f143eb21d70ac89b0519c013b622a80521408a9b31956008c019e9d6cf3cb02"},
+    {file = "manifold3d-3.0.1-cp311-cp311-macosx_10_14_x86_64.whl", hash = "sha256:19612a38681a6b24666d12d24e0da95f506ff0693a72d72d67b6d0b8faca997e"},
+    {file = "manifold3d-3.0.1-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:48f381a642d26462819aac7af2b2e37a26768e065170fd220bf69fcc0fde4040"},
+    {file = "manifold3d-3.0.1-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:dfcf3fee352047c637300077c734306f747caf331cb392dbc604b6121607cca0"},
+    {file = "manifold3d-3.0.1-cp311-cp311-win_amd64.whl", hash = "sha256:ffabe48457c085a67b1eca416900fc000c723cf737441cb77043455f7faf1685"},
+    {file = "manifold3d-3.0.1-cp312-cp312-macosx_10_14_universal2.whl", hash = "sha256:8a4c689583e121eb1589fcdb5fc68262cd7588c1694517436e9b235e5d4fd731"},
+    {file = "manifold3d-3.0.1-cp312-cp312-macosx_10_14_x86_64.whl", hash = "sha256:6a69b972062e126b4609ac9e6312cb81dc039267f90c44c1cdd8ebb1850f74a4"},
+    {file = "manifold3d-3.0.1-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:d7a7e0a22466176b055f77b03b2e7335053a6a82d8af436c02ffc468147baa1c"},
+    {file = "manifold3d-3.0.1-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:ec2ddef6c9fd1b31d348beb499a5771e733abf962d5cd52264aa80f82faf0544"},
+    {file = "manifold3d-3.0.1-cp312-cp312-win_amd64.whl", hash = "sha256:f6399fc5662e51733249f05c503c9ed828ce8c435c6438e65a0367afc7cbe674"},
+    {file = "manifold3d-3.0.1-cp313-cp313-macosx_10_14_universal2.whl", hash = "sha256:1f1a2519b23116239f50a181e8fbae0c9eeebbd2e816b836e98f78a8533d3885"},
+    {file = "manifold3d-3.0.1-cp313-cp313-macosx_10_14_x86_64.whl", hash = "sha256:01fb0a51826afe12e56dbfdf8881fd95b10f81d6a895363bb9ec9569fcd9b7dc"},
+    {file = "manifold3d-3.0.1-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:32a15a2fbaecb9beb61f9b7813f8946b999f6bc6f63787c3438d08f5143dc618"},
+    {file = "manifold3d-3.0.1-cp313-cp313-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:ce333f44c237e0273b3a035afae7cda2eab1fb3d5212bf5ac52bb6ba4d63a40d"},
+    {file = "manifold3d-3.0.1-cp313-cp313-win_amd64.whl", hash = "sha256:75736974f21ccadf74db9cbe33931b93a8d4218ffa6d25b218e2dde543de08a6"},
+    {file = "manifold3d-3.0.1-cp38-cp38-macosx_10_14_universal2.whl", hash = "sha256:eb6d117cef1bdcd84944b5f1dc4e92c70474590bab96f503aafdc086cd4328b3"},
+    {file = "manifold3d-3.0.1-cp38-cp38-macosx_10_14_x86_64.whl", hash = "sha256:47f224bcebfaa50623bba1c4020e06b84c4156826d36417041f90280a2c43631"},
+    {file = "manifold3d-3.0.1-cp38-cp38-macosx_11_0_arm64.whl", hash = "sha256:65c02aa644448e3c5775d4faea3d65b271e5b1ba68807e661b9aba228a536b83"},
+    {file = "manifold3d-3.0.1-cp38-cp38-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:fa7e2d4237a448665e7b29bacca5683a96155be4e408d4a5d098339bbc464b80"},
+    {file = "manifold3d-3.0.1-cp38-cp38-win_amd64.whl", hash = "sha256:aabe64b13126154a0050f171e582b6b23db39931732b11fc9ac20a104ce24728"},
+    {file = "manifold3d-3.0.1-cp39-cp39-macosx_10_14_universal2.whl", hash = "sha256:b6c39c17d4edfbc177dcece41e7db1cff46be0245805725d822bf06c76b1ebe4"},
+    {file = "manifold3d-3.0.1-cp39-cp39-macosx_10_14_x86_64.whl", hash = "sha256:39c7d277d0d2522de7947c465a9cd64cdc591f3f652d65064a76de3624f5e5f4"},
+    {file = "manifold3d-3.0.1-cp39-cp39-macosx_11_0_arm64.whl", hash = "sha256:31fdeb27d413f3029c38bd2d93363aa279483480292a24db85c6e2ec3faed73b"},
+    {file = "manifold3d-3.0.1-cp39-cp39-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:33f26964186421b62ff9c2402852296816945a493e4e6a45ba6a0db356af28f6"},
+    {file = "manifold3d-3.0.1-cp39-cp39-win_amd64.whl", hash = "sha256:c970653292ac2802b6a5ac3c9c4cef3f7d0d71be13e8b713ad8879c5ffca8881"},
+    {file = "manifold3d-3.0.1.tar.gz", hash = "sha256:92a83bd16315a5e0310c5af3cd29a2c3319b0b06611608069e2a1da3d187eff5"},
 ]
 
 [package.dependencies]
@@ -3230,14 +3240,14 @@ files = [
 
 [[package]]
 name = "pyglet"
-version = "1.5.31"
-description = "Cross-platform windowing and multimedia library"
+version = "2.1.6"
+description = "pyglet is a cross-platform games and multimedia package."
 optional = false
-python-versions = "*"
+python-versions = ">=3.8"
 groups = ["dev"]
 files = [
-    {file = "pyglet-1.5.31-py3-none-any.whl", hash = "sha256:f68413564bbec380e4815898fef0fb7a4a494dc3f8718bfbf28ce2a802634c88"},
-    {file = "pyglet-1.5.31.zip", hash = "sha256:a5e422b4c27b0fc99e92103bf493109cca5c18143583b868b3b4631a98ae9417"},
+    {file = "pyglet-2.1.6-py3-none-any.whl", hash = "sha256:52ef9e75f3969b6a28bfa5c223e50ff03a05c2baa67bfe00d2a9eec4e831a7c5"},
+    {file = "pyglet-2.1.6.tar.gz", hash = "sha256:18483880b1411b39692eaf7756819285797b1aaf9ef63d40eb9f9b5d01c63416"},
 ]
 
 [[package]]
@@ -3777,30 +3787,28 @@ files = [
 
 [[package]]
 name = "scenic"
-version = "3.0.0"
+version = "3.1.0a1"
 description = "The Scenic scenario description language."
 optional = false
 python-versions = ">=3.8"
 groups = ["dev"]
-files = [
-    {file = "scenic-3.0.0-py3-none-any.whl", hash = "sha256:3f75794b60f43e80e6fbcbc2b8fd60a952f11ba061a13a27e3ddfb6c49120f6c"},
-    {file = "scenic-3.0.0.tar.gz", hash = "sha256:80bd8c641d691e4535c0cfe61a7c7ad7f3230b60cfd9ee38d5ba446d2ae2a48a"},
-]
+files = []
+develop = true
 
 [package.dependencies]
 antlr4-python3-runtime = ">=4.11,<5.0"
 attrs = ">=19.3.0"
 dotmap = ">=1.3,<2.0"
-manifold3d = "2.3.0"
+manifold3d = ">=2.5.1"
 mapbox_earcut = ">=0.12.10"
 matplotlib = ">=3.2,<4.0"
 networkx = ">=2.6"
-numpy = ">=1.24,<2.0"
+numpy = ">=1.24"
 opencv-python = ">=4.5,<5.0"
 pegen = ">=0.3.0"
 pillow = ">=9.1"
 pygame = {version = ">=2.1.3.dev8,<3", markers = "python_version >= \"3.11\""}
-pyglet = ">=1.5,<2.0"
+pyglet = ">=1.5"
 python-fcl = ">=0.7"
 Rtree = ">=1.0,<2.0"
 rv-ltl = ">=0.1,<1.0"
@@ -3810,10 +3818,15 @@ shapely = ">=2.0,<3.0"
 trimesh = ">=4.0.9,<5"
 
 [package.extras]
-dev = ["black (>=24.0,<25.0)", "isort (>=5.11,<6.0)", "pre-commit (>=3.0,<4.0)", "pytest-cov (>=3.0.0)", "scenic[test-full]", "tox (>=4.0,<5.0)"]
+dev = ["black (>=25.1.0,<25.2.0)", "isort (>=5.12.0,<5.13.0)", "pre-commit (>=3.0,<4.0)", "pytest-cov (>=3.0.0)", "scenic[test-full]", "tox (>=4.0,<5.0)"]
 guideways = ["pyproj (>=3.0,<4.0) ; python_version < \"3.10\"", "pyproj (>=3.3,<4.0) ; python_version >= \"3.10\""]
+metadrive = ["metadrive-simulator (>=0.4.3)", "sumolib (>=1.21.0)"]
 test = ["pytest (>=7.0.0,<8)", "pytest-cov (>=3.0.0)", "pytest-randomly (>=3.2,<4.0)"]
-test-full = ["astor (>=0.8.1)", "carla (>=0.9.12) ; python_version <= \"3.8\" and (platform_system == \"Linux\" or platform_system == \"Windows\")", "dill", "exceptiongroup", "inflect (>=5.5,<6.0)", "pygments (>=2.11,<3.0)", "scenic[guideways]", "scenic[test]", "sphinx (>=5.0.0,<6)", "sphinx-tabs (>=3.4.1,<3.5.0)", "sphinx_rtd_theme (>=0.5.2)", "verifai (>=2.1.0b1)"]
+test-full = ["astor (>=0.8.1)", "carla (>=0.9.12) ; python_version <= \"3.10\" and (platform_system == \"Linux\" or platform_system == \"Windows\")", "dill", "exceptiongroup", "inflect (>=5.5,<6.0)", "pygments (>=2.11,<3.0)", "scenic[guideways]", "scenic[metadrive] ; python_version <= \"3.11\"", "scenic[test]", "sphinx (>=6.2.0,<7.2.0)", "sphinx-tabs (>=3.4.1,<3.5.0)", "sphinx_rtd_theme (>=0.5.2)", "verifai (>=2.1.0b1)"]
+
+[package.source]
+type = "directory"
+url = "Scenic"
 
 [[package]]
 name = "scikit-image"
@@ -5120,4 +5133,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11,<3.13"
-content-hash = "526bc55dba263ecc9804c15d38602bde3b940ee13e6ddfd163e16c43a5a4db7a"
+content-hash = "e4a7ab62342407a121554ea8fb7ac7df79f6b7c182b2491212e07bfc53c2eee1"
