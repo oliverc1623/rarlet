@@ -6,7 +6,9 @@
 # it also excludes anything in your `.gitignore` file
 extend-exclude = [
     ".pyenv",
+    "Scenic",
 ]
+
 
 extend-include = ["*.ipynb"]
 line-length = 150 # we want longer lines than black default
@@ -105,6 +107,8 @@ max-complexity = 15  # 10 is the default, which is nice... but annoying
 [lint.isort]
 force-single-line = false
 lines-after-imports = 2
+known-first-party = ["scenic"]
+
 
 [format]
 quote-style = "double" # Like Black, use double quotes for strings.

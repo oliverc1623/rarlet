@@ -2,13 +2,14 @@
 import pathlib
 
 import numpy as np
-import scenic
 from gymnasium import spaces
-from scenic.gym import ScenicGymEnv
-from scenic.simulators.metadrive import MetaDriveSimulator
 from stable_baselines3 import SAC
 from stable_baselines3.common.utils import set_random_seed
 from stable_baselines3.common.vec_env import SubprocVecEnv, VecMonitor
+
+import scenic
+from scenic.gym import ScenicGymEnv
+from scenic.simulators.metadrive import MetaDriveSimulator
 
 
 # %%
@@ -19,17 +20,17 @@ def make_env() -> callable:
 
     def thunk() -> ScenicGymEnv:
         scenario = scenic.scenarioFromFile(
-            "../scenarios/protagonsit.scenic",
+            "scenarios/protagonsit.scenic",
             model="scenic.simulators.metadrive.model",
             mode2D=True,
         )
 
         env = ScenicGymEnv(
             scenario,
-            MetaDriveSimulator(timestep=0.02, sumo_map=pathlib.Path("../maps/Town06.net.xml"), render=False, real_time=False),
+            MetaDriveSimulator(timestep=0.02, sumo_map=pathlib.Path("maps/Town06.net.xml"), render=False, real_time=False),
             observation_space=spaces.Box(low=-np.inf, high=np.inf, shape=(258,)),
             action_space=spaces.Box(low=-1, high=1, shape=(2,)),
-            max_steps=700,
+            max_steps=225,
         )
         return env
 
@@ -43,7 +44,7 @@ def main() -> None:
 
     log_dir = "protagonist-baseline"
 
-    envs = [make_env() for i in range(4)]
+    envs = [make_env() for i in range(8)]
     env = SubprocVecEnv(envs)
     env = VecMonitor(env, log_dir)
     env.reset()

@@ -38,6 +38,10 @@ tensorboard = "^2.18.0"
 wandb = "^0.19.1"
 tyro = "^0.9.16"
 verifai = "^2.1.2"
+jax-jumpy = "^1.0.0"
+torchrl = "^0.8.0"
+tensordict = "^0.8.2"
+scenic = { path = "Scenic", develop = true }
 
 [[tool.poetry.source]]
 name = "pytorch_cuda"
@@ -52,4 +56,7 @@ omit = ["tests/conftest.py"]
 markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
     "skipci(reason): marks tests to skip in ci (deselect with '-m \"not skipci\"')",
+]
+norecursedirs = [
+    "rarlet/Scenic"
 ]
