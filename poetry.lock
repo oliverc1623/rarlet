@@ -1715,8 +1715,8 @@ files = [
 
 [package.dependencies]
 numpy = [
-    {version = ">=1.26.0b1", markers = "python_version >= \"3.12\""},
     {version = "*", markers = "python_version < \"3.12\""},
+    {version = ">=1.26.0b1", markers = "python_version >= \"3.12\""},
 ]
 
 [[package]]
@@ -2354,8 +2354,8 @@ files = [
 
 [package.dependencies]
 numpy = [
+    {version = ">=1.23.5", markers = "python_version >= \"3.11\""},
     {version = ">=1.26.0", markers = "python_version >= \"3.12\""},
-    {version = ">=1.23.5", markers = "python_version == \"3.11\""},
 ]
 
 [[package]]
@@ -2637,8 +2637,8 @@ files = [
 
 [package.dependencies]
 numpy = [
-    {version = ">=1.26.0", markers = "python_version >= \"3.12\""},
     {version = ">=1.23.2", markers = "python_version == \"3.11\""},
+    {version = ">=1.26.0", markers = "python_version >= \"3.12\""},
 ]
 python-dateutil = ">=2.8.2"
 pytz = ">=2020.1"
@@ -3349,8 +3349,8 @@ files = [
 [package.dependencies]
 Cython = "*"
 numpy = [
-    {version = ">=1.26.0b1", markers = "python_version >= \"3.12\""},
     {version = "*", markers = "python_version < \"3.12\""},
+    {version = ">=1.26.0b1", markers = "python_version >= \"3.12\""},
 ]
 
 [[package]]
@@ -3826,7 +3826,7 @@ test-full = ["astor (>=0.8.1)", "carla (>=0.9.12) ; python_version <= \"3.10\" a
 
 [package.source]
 type = "directory"
-url = "rarlet/Scenic"
+url = "Scenic"
 
 [[package]]
 name = "scikit-image"
@@ -5133,4 +5133,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11,<3.13"
-content-hash = "50a9af55541e7e73e2557b65811a74446ebb4d3a9a40f4fb5f854e4dd7c9e2dd"
+content-hash = "e4a7ab62342407a121554ea8fb7ac7df79f6b7c182b2491212e07bfc53c2eee1"
