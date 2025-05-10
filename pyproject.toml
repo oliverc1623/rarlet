@@ -41,7 +41,7 @@ verifai = "^2.1.2"
 jax-jumpy = "^1.0.0"
 torchrl = "^0.8.0"
 tensordict = "^0.8.2"
-scenic = { path = "Scenic", develop = true }
+scenic = { path = "rarlet/Scenic", develop = true }
 
 [[tool.poetry.source]]
 name = "pytorch_cuda"
