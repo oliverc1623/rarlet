@@ -18,6 +18,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
+      wit: 
+        submodules: 'true'
     - name: Install Poetry
       run: |
         pipx install poetry
