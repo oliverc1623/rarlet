@@ -2,13 +2,14 @@
 import pathlib
 
 import numpy as np
-import scenic
 from gymnasium import spaces
-from scenic.gym import ScenicGymEnv
-from scenic.simulators.metadrive import MetaDriveSimulator
 from stable_baselines3 import SAC
 from stable_baselines3.common.utils import set_random_seed
 from stable_baselines3.common.vec_env import SubprocVecEnv, VecMonitor
+
+import scenic
+from scenic.gym import ScenicGymEnv
+from scenic.simulators.metadrive import MetaDriveSimulator
 
 
 # %%
