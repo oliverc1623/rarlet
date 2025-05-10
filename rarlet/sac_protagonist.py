@@ -1,6 +1,7 @@
 # docs and experiment results can be found at https://docs.cleanrl.dev/rl-algorithms/sac/#sac_continuous_actionpy
 import math
 import os
+import pathlib
 import random
 import time
 from collections import deque
@@ -10,9 +11,13 @@ from pathlib import Path
 import gymnasium as gym
 import highway_env  # noqa: F401
 import numpy as np
+import scenic
 import torch
 import torch.nn.functional as f
 import tyro
+from gymnasium import spaces
+from scenic.gym import ScenicGymEnv
+from scenic.simulators.metadrive.simulator import MetaDriveSimulator
 from tensordict import TensorDict, from_module, from_modules
 from tensordict.nn import CudaGraphModule, TensorDictModule
 from torch import nn, optim
@@ -20,6 +25,8 @@ from torchrl.data import LazyTensorStorage, ReplayBuffer
 
 import wandb
 
+
+root_path = Path(__file__).resolve().parent.parent
 
 os.environ["TORCHDYNAMO_INLINE_INBUILT_NN_MODULES"] = "1"
 
@@ -38,6 +45,8 @@ class Args:
     """if toggled, cuda will be enabled by default"""
     capture_video: bool = False
     """whether to capture videos of the agent performances (check out `videos` folder)"""
+    num_envs: int = 1
+    """number of parallel environments"""
 
     # Algorithm specific arguments
     env_id: str = "highway-fast-v0"
@@ -100,17 +109,23 @@ config = {
 }
 
 
-def make_env(env_id: str, seed: int, idx: int, capture_video: int, run_name: str) -> callable:
+def make_env() -> callable:
     """Create and configure a gym environment based on the provided parameters."""
 
     def thunk() -> gym.Env:
-        if capture_video and idx == 0:
-            env = gym.make(env_id, config=config, render_mode="rgb_array")
-            env = gym.wrappers.RecordVideo(env, f"videos/{run_name}")
-        else:
-            env = gym.make(env_id, config=config)
-        env = gym.wrappers.RecordEpisodeStatistics(env)
-        env.action_space.seed(seed)
+        scenario = scenic.scenarioFromFile(
+            "scenarios/protagonsit.scenic",
+            model="scenic.simulators.metadrive.model",
+            mode2D=True,
+        )
+
+        env = ScenicGymEnv(
+            scenario,
+            MetaDriveSimulator(timestep=0.02, sumo_map=pathlib.Path(f"{root_path}/rarlet/maps/Town06.net.xml"), render=False, real_time=False),
+            observation_space=spaces.Box(low=-np.inf, high=np.inf, shape=(258,)),
+            action_space=spaces.Box(low=-1, high=1, shape=(2,)),
+            max_steps=225,
+        )
         return env
 
     return thunk
@@ -207,7 +222,7 @@ if __name__ == "__main__":
     device = torch.device("cuda" if torch.cuda.is_available() and args.cuda else "cpu")
 
     # env setup
-    envs = gym.vector.AsyncVectorEnv([make_env(args.env_id, args.seed, 0, args.capture_video, run_name)])
+    envs = gym.vector.AsyncVectorEnv([make_env() for i in range(args.num_envs)])
     n_act = math.prod(envs.single_action_space.shape)
     n_obs = math.prod(envs.single_observation_space.shape)
     assert isinstance(envs.single_action_space, gym.spaces.Box), "only continuous action space is supported"

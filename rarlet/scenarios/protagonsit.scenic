@@ -2,8 +2,12 @@
 # Imports
 import math
 import numpy as np
+from pathlib import Path
 
-param map = localPath('../maps/Town06.xodr')
+
+root_path = Path(__file__).resolve().parent.parent
+
+param map = localPath(f'{root_path}/maps/Town06.xodr')
 param carla_map = 'Town06'
 param time_step = 1.0/10
 model scenic.simulators.metadrive.model
@@ -232,7 +236,7 @@ for i in range(num_vehicles_to_place):
 require always (distance from ego.position to c1.position) > 4.99
 terminate when ego.lane == None 
 '''
-terminate when ego.position.x >= ego_spawn_pt[0] + 350
+terminate when ego.position.x >= ego_spawn_pt[0] + 200
 terminate when ego.metaDriveActor.crash_vehicle
 terminate when ego._lane == None
 terminate when any(v.metaDriveActor.crash_vehicle for v in victim_vehicles)
