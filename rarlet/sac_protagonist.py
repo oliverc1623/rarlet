@@ -10,19 +10,19 @@ from pathlib import Path
 
 import gymnasium as gym
 import numpy as np
-import scenic
 import torch
 import torch.nn.functional as f
 import tyro
+import wandb
 from gymnasium import spaces
-from scenic.gym import ScenicGymEnv
-from scenic.simulators.metadrive.simulator import MetaDriveSimulator
 from tensordict import TensorDict, from_module, from_modules
 from tensordict.nn import CudaGraphModule, TensorDictModule
 from torch import nn, optim
 from torchrl.data import LazyTensorStorage, ReplayBuffer
 
-import wandb
+import scenic
+from scenic.gym import ScenicGymEnv
+from scenic.simulators.metadrive.simulator import MetaDriveSimulator
 
 
 root_path = Path(__file__).resolve().parent.parent
@@ -80,32 +80,6 @@ class Args:
     """whether to use cudagraphs on top of compile."""
     measure_burnin: int = 3
     """Number of burn-in iterations for speed measure."""
-
-
-config = {
-    "observation": {
-        "type": "Kinematics",
-    },
-    "action": {
-        "type": "ContinuousAction",
-    },
-    "lanes_count": 2,
-    "vehicles_count": 5,
-    "duration": 20,
-    "initial_spacing": 2,
-    "collision_reward": -1,
-    "reward_speed_range": [20, 30],
-    "simulation_frequency": 5,
-    "policy_frequency": 1,
-    "other_vehicles_type": "highway_env.vehicle.behavior.IDMVehicle",
-    "screen_width": 600,
-    "screen_height": 150,
-    "centering_position": [0.3, 0.5],
-    "scaling": 5.5,
-    "show_trajectories": False,
-    "render_agent": False,
-    "offscreen_rendering": False,
-}
 
 
 def make_env() -> callable:
