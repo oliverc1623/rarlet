@@ -6,7 +6,9 @@
 # it also excludes anything in your `.gitignore` file
 extend-exclude = [
     ".pyenv",
+    "Scenic",
 ]
+
 
 extend-include = ["*.ipynb"]
 line-length = 150 # we want longer lines than black default

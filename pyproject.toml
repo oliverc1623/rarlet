@@ -57,3 +57,6 @@ markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
     "skipci(reason): marks tests to skip in ci (deselect with '-m \"not skipci\"')",
 ]
+norecursedirs = [
+    "rarlet/Scenic"
+]
