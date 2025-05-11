@@ -210,13 +210,13 @@ behavior dummy_attacker():
 #PLACEMENT
 ego_spawn_pt  = (100 @ -146.5)
 
-num_vehicles_to_place = 6
+num_vehicles_to_place = 4
 lane_width = 3.5
 
 id = 0
-ego = new Car on ego_spawn_pt
+ego = new Car on ego_spawn_pt, with behavior dummy_attacker(), with velocity (5,0)
 
-victim_spawn_pt = (120 @ -150)
+victim_spawn_pt = (130 @ -150)
 
 victim_vehicles = []
 for i in range(num_vehicles_to_place):
@@ -232,7 +232,7 @@ for i in range(num_vehicles_to_place):
 require always (distance from ego.position to c1.position) > 4.99
 terminate when ego.lane == None 
 '''
-terminate when ego.position.x >= ego_spawn_pt[0] + 350
+terminate when ego.position.x >= ego_spawn_pt[0] + 200
 terminate when ego.metaDriveActor.crash_vehicle
 terminate when ego._lane == None
 terminate when any(v.metaDriveActor.crash_vehicle for v in victim_vehicles)
