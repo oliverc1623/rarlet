@@ -1,24 +1,32 @@
 # docs and experiment results can be found at https://docs.cleanrl.dev/rl-algorithms/sac/#sac_continuous_actionpy
 import math
 import os
+import pathlib
 import random
 import time
+import warnings
 from collections import deque
 from dataclasses import dataclass
 from pathlib import Path
 
 import gymnasium as gym
 import numpy as np
+import scenic
 import torch
 import torch.nn.functional as f
 import tqdm
 import tyro
 import wandb
+from gymnasium import spaces
+from scenic.gym.envs.scenic_gym import ScenicGymEnv
+from scenic.simulators.metadrive.simulator import MetaDriveSimulator
 from tensordict import TensorDict, from_module, from_modules
 from tensordict.nn import CudaGraphModule, TensorDictModule
 from torch import nn, optim
 from torchrl.data import LazyTensorStorage, ReplayBuffer
 
+
+warnings.filterwarnings("ignore")
 
 os.environ["TORCHDYNAMO_INLINE_INBUILT_NN_MODULES"] = "1"
 
@@ -77,14 +85,24 @@ class Args:
     """Number of burn-in iterations for speed measure."""
 
 
-def make_env(env_id: str, seed: int) -> callable:
+def make_env() -> callable:
     """Create and seed environments."""
 
     def thunk() -> gym.Env:
         """Create a gym environment."""
-        env = gym.make(env_id)
-        env = gym.wrappers.RecordEpisodeStatistics(env)
-        env.action_space.seed(seed)
+        scenario = scenic.scenarioFromFile(
+            "scenarios/protagonsit.scenic",
+            model="scenic.simulators.metadrive.model",
+            mode2D=True,
+        )
+
+        env = ScenicGymEnv(
+            scenario,
+            MetaDriveSimulator(timestep=0.02, sumo_map=pathlib.Path("maps/Town06.net.xml"), render=False, real_time=False),
+            observation_space=spaces.Box(low=-np.inf, high=np.inf, shape=(258,)),
+            action_space=spaces.Box(low=-1, high=1, shape=(2,)),
+            max_steps=700,
+        )
         return env
 
     return thunk
@@ -182,7 +200,7 @@ if __name__ == "__main__":
     device = torch.device("cuda" if torch.cuda.is_available() and args.cuda else "cpu")
 
     # env setup
-    envs = gym.vector.AsyncVectorEnv([make_env(args.env_id, args.seed + i) for i in range(args.num_envs)])
+    envs = gym.vector.AsyncVectorEnv([make_env() for i in range(args.num_envs)])
     n_act = math.prod(envs.single_action_space.shape)
     n_obs = math.prod(envs.single_observation_space.shape)
     assert isinstance(envs.single_action_space, gym.spaces.Box), "only continuous action space is supported"
