@@ -4667,56 +4667,44 @@ reference = "pytorch_cuda"
 
 [[package]]
 name = "torchrl"
-version = "0.8.0"
+version = "0.6.0"
 description = ""
 optional = false
 python-versions = "*"
 groups = ["dev"]
 files = [
-    {file = "torchrl-0.8.0-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:36df9d5fb98d6877ecb06e080740b32c557c57b215c87e3707463b5450747f96"},
-    {file = "torchrl-0.8.0-cp310-cp310-manylinux_2_28_aarch64.whl", hash = "sha256:ac9b55adf14c762e59ff7a6a3e2eb28001d7f4635b0ff44187f2ec2dc2af0006"},
-    {file = "torchrl-0.8.0-cp310-cp310-manylinux_2_28_x86_64.whl", hash = "sha256:50b7a227f1a0513924d11426be88d5afd03ff69190ee3d3df3624ec24eb099c4"},
-    {file = "torchrl-0.8.0-cp310-cp310-win_amd64.whl", hash = "sha256:da1659093435ca7c8ba6a055b62d7e1087e2f2db3c3b455cb78119d61191b133"},
-    {file = "torchrl-0.8.0-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:50d889755868431e2fe3183d2444a3666ed0306131bf3bdfaf2654848676e3d2"},
-    {file = "torchrl-0.8.0-cp311-cp311-manylinux_2_28_aarch64.whl", hash = "sha256:3205f7d27444c7c079f71a107d9b6c24900e841bbaeb9a14c3c8584984017d2e"},
-    {file = "torchrl-0.8.0-cp311-cp311-manylinux_2_28_x86_64.whl", hash = "sha256:2abab21ac74d142580ecaf6b532eb8de990345b0f4c50531834e931a2e0327b5"},
-    {file = "torchrl-0.8.0-cp311-cp311-win_amd64.whl", hash = "sha256:c6f46f6912cdf68fc48e899dbb0caf6b2ea51bae0c0dbfb367729d935c3eac86"},
-    {file = "torchrl-0.8.0-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:3d1dc054152bfd0b7088b98175a3ca2844ab315ed56eb8b7b3bf3b5505128e14"},
-    {file = "torchrl-0.8.0-cp312-cp312-manylinux_2_28_aarch64.whl", hash = "sha256:4843e5035b0dcd3733a311e22257043b947ffff1cad729c39af6d396078a630b"},
-    {file = "torchrl-0.8.0-cp312-cp312-manylinux_2_28_x86_64.whl", hash = "sha256:8e82116891ae35bf6a130291630756ee5dd7b83ab24e7a77b204d1edcbee3179"},
-    {file = "torchrl-0.8.0-cp312-cp312-win_amd64.whl", hash = "sha256:2ecfb141224f98a2754aa1cd3933108df4ea72a44df8f4371be53acae8ea0a16"},
-    {file = "torchrl-0.8.0-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:10d9ed0e747da031e2dc1eda767829029faed2b284a3a6738007dab58123257e"},
-    {file = "torchrl-0.8.0-cp313-cp313-manylinux_2_28_aarch64.whl", hash = "sha256:880c14ca48fd8407c366487b46e1bad47dbfc542c8f92390af62c51f4a1be687"},
-    {file = "torchrl-0.8.0-cp313-cp313-manylinux_2_28_x86_64.whl", hash = "sha256:cccf2fb76f16a9e48712dd75d36c41e1904cfe8b246a5da9cd2be0f2d4ee4a8e"},
-    {file = "torchrl-0.8.0-cp313-cp313-win_amd64.whl", hash = "sha256:76d84966576fdc2ce2fc654ab2dd7609e2569071a9a26e76144c8318404e1b72"},
-    {file = "torchrl-0.8.0-cp313-cp313t-macosx_11_0_arm64.whl", hash = "sha256:4e3ec383c56e3d6645eaabb903d893c1c18b032f07c8bac61f051053d06537b9"},
-    {file = "torchrl-0.8.0-cp313-cp313t-manylinux_2_28_x86_64.whl", hash = "sha256:7044cbe4dfe7bebdc44b84a0c88ee40aa636269a9336fe81f1dc2911efd6f08a"},
-    {file = "torchrl-0.8.0-cp313-cp313t-win_amd64.whl", hash = "sha256:15b54295753bd5a8c756a612c4624cbb636ab35ce94a7546daf2d58dc57bd9d6"},
-    {file = "torchrl-0.8.0-cp39-cp39-macosx_11_0_arm64.whl", hash = "sha256:3c5148cbd4ce50e10693a7a1af98886034f2af563f24e50433bd0c3a4f4f72d4"},
-    {file = "torchrl-0.8.0-cp39-cp39-manylinux_2_28_aarch64.whl", hash = "sha256:6ea9f8f3817db6b4184b5333923a6d0277f61d74eec3427899318dc94133258d"},
-    {file = "torchrl-0.8.0-cp39-cp39-manylinux_2_28_x86_64.whl", hash = "sha256:b15f9c5a10fc3ffd25afbaf782b28841c49d74f28058cd1152f212641c7a3e9a"},
-    {file = "torchrl-0.8.0-cp39-cp39-win_amd64.whl", hash = "sha256:155cd6c7566753adebaf4ccb630f0ebab11af26f6efe3c5f5ffff7633f246356"},
+    {file = "torchrl-0.6.0-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:d26a9fc3dcbcc04c0d718c53c6f4af8336e7482bca03137c5de4ba4989176065"},
+    {file = "torchrl-0.6.0-cp310-cp310-manylinux1_x86_64.whl", hash = "sha256:07594f8c80156a6f6d2d9b91b76062932aa99e921060855dfd0a19250638130b"},
+    {file = "torchrl-0.6.0-cp310-cp310-win_amd64.whl", hash = "sha256:6ee87e349833f3fc9031a02b4cfb120d17f703a2e8aebce1c1cde285cfe34241"},
+    {file = "torchrl-0.6.0-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:c045581e9d27270631cc1dc069817f068732361cea4f23412a608a259e4046bc"},
+    {file = "torchrl-0.6.0-cp311-cp311-manylinux1_x86_64.whl", hash = "sha256:04a2cd51795b364cc477161b6242e9e8156fb0d7e321659180a85c63a7a463ba"},
+    {file = "torchrl-0.6.0-cp311-cp311-win_amd64.whl", hash = "sha256:089792c124981b0d7eba8031ae36d155a37aab0167b0ff4ebb77a58686e7773e"},
+    {file = "torchrl-0.6.0-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:d978c4714f10137927f5ae47196130d2924f84ff551aaa8053c2c4d15e0e77f2"},
+    {file = "torchrl-0.6.0-cp312-cp312-manylinux1_x86_64.whl", hash = "sha256:b5f0328845fe3e084a1ddb82ba978e592a31646cdfa414d6517c52e677c20355"},
+    {file = "torchrl-0.6.0-cp312-cp312-win_amd64.whl", hash = "sha256:3b888ad05be6a041d907d0513fb647f98205726fc258081094752ff9cdce5f9d"},
+    {file = "torchrl-0.6.0-cp39-cp39-macosx_11_0_arm64.whl", hash = "sha256:7fc4bdb07d6d19e5a66891e142fee17df97df34de5efcef7c978c0fc46f01445"},
+    {file = "torchrl-0.6.0-cp39-cp39-manylinux1_x86_64.whl", hash = "sha256:c4d23fbd5c057d06c4d19b4c3331fe17f6c6390c849cd7cd5fb44386e486cc56"},
+    {file = "torchrl-0.6.0-cp39-cp39-win_amd64.whl", hash = "sha256:a0ebb9df6a176d9de759e84a232bb2db1f136b160a9d0057fc8e492ee6baf4a6"},
 ]
 
 [package.dependencies]
 cloudpickle = "*"
 numpy = "*"
 packaging = "*"
-tensordict = ">=0.8.1,<0.9.0"
-torch = ">=2.1.0"
+tensordict = ">=0.6.0"
+torch = ">=2.5.0"
 
 [package.extras]
-all = ["ale-py", "atari-py", "dm-meltingpot", "dm_control", "git", "gym", "gym[accept-rom-license]", "gymnasium (<1.0)", "h5py", "huggingface_hub", "hydra-core (>=1.1)", "hydra-submitit-launcher", "minari", "moviepy (<2.0.0)", "mujoco", "open_spiel (>=1.5)", "pandas", "pettingzoo (>=1.24.1)", "pillow", "pygame", "pytest", "pytest-asyncio", "pytest-benchmark", "pytest-cov", "pytest-error-for-skips", "pytest-instafail", "pytest-mock", "pytest-rerunfailures", "pyyaml", "requests", "scikit-learn", "scipy", "tensorboard", "torch (>=2.7.0)", "torchsnapshot", "torchvision", "tqdm", "vmas (>=1.2.10)", "wandb"]
+all = ["ale-py", "atari-py", "dm-control", "dm-meltingpot", "git", "gym", "gym[accept-rom-license]", "gymnasium (<1.0)", "h5py", "huggingface-hub", "hydra-core (>=1.1)", "hydra-submitit-launcher", "minari", "moviepy", "mujoco", "open-spiel (>=1.5)", "pandas", "pettingzoo (>=1.24.1)", "pillow", "pygame", "pytest", "pytest-instafail", "pyyaml", "requests", "scikit-learn", "scipy", "tensorboard", "torchsnapshot", "torchvision", "tqdm", "vmas (>=1.2.10)", "wandb"]
 atari = ["ale-py", "atari-py", "gym", "gym[accept-rom-license]", "pygame"]
 checkpointing = ["torchsnapshot"]
-dm-control = ["dm_control"]
+dm-control = ["dm-control"]
 gym-continuous = ["gymnasium (<1.0)", "mujoco"]
 marl = ["dm-meltingpot", "pettingzoo (>=1.24.1)", "vmas (>=1.2.10)"]
-offline-data = ["h5py", "huggingface_hub", "minari", "pandas", "pillow", "requests", "scikit-learn", "torchvision", "tqdm"]
-open-spiel = ["open_spiel (>=1.5)"]
-rendering = ["moviepy (<2.0.0)"]
-replay-buffer = ["torch (>=2.7.0)"]
-tests = ["pytest", "pytest-asyncio", "pytest-benchmark", "pytest-cov", "pytest-error-for-skips", "pytest-instafail", "pytest-mock", "pytest-rerunfailures", "pyyaml", "scipy"]
+offline-data = ["h5py", "huggingface-hub", "minari", "pandas", "pillow", "requests", "scikit-learn", "torchvision", "tqdm"]
+open-spiel = ["open-spiel (>=1.5)"]
+rendering = ["moviepy"]
+tests = ["pytest", "pytest-instafail", "pyyaml", "scipy"]
 utils = ["git", "hydra-core (>=1.1)", "hydra-submitit-launcher", "tensorboard", "tqdm", "wandb"]
 
 [[package]]
@@ -5133,4 +5121,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11,<3.13"
-content-hash = "e4a7ab62342407a121554ea8fb7ac7df79f6b7c182b2491212e07bfc53c2eee1"
+content-hash = "64b14cbb5497d097f74989064cf8036f34cd0080f4527f7540939447c9306bad"

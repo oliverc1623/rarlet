@@ -39,7 +39,7 @@ wandb = "^0.19.1"
 tyro = "^0.9.16"
 verifai = "^2.1.2"
 jax-jumpy = "^1.0.0"
-torchrl = "^0.8.0"
+torchrl = "^0.6.0"
 tensordict = "^0.8.2"
 scenic = { path = "Scenic", develop = true }
 
