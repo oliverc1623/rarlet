@@ -289,8 +289,9 @@ if __name__ == "__main__":
     desc = ""
     episode_start = np.zeros(envs.num_envs, dtype=bool)
 
-    for global_step in pbar:
-        if global_step == args.measure_burnin + args.learning_starts:
+    for iter_indx in pbar:
+        global_step = iter_indx * args.num_envs
+        if global_step >= args.measure_burnin + args.learning_starts and start_time is None:
             start_time = time.time()
             measure_burnin = global_step
 
@@ -342,11 +343,11 @@ if __name__ == "__main__":
                     alpha.copy_(log_alpha.detach().exp())
 
             # update the target networks
-            if global_step % args.target_network_frequency == 0:
+            if iter_indx % args.target_network_frequency == 0:
                 # lerp is defined as x' = x + w (y-x), which is equivalent to x' = (1-w) x + w y
                 qnet_target.lerp_(qnet_params.data, args.tau)
 
-            if global_step % 100 == 0 and start_time is not None:
+            if iter_indx % (max(1, 100 // args.num_envs)) == 0 and start_time is not None:
                 speed = (global_step - measure_burnin) / (time.time() - start_time)
                 pbar.set_description(f"{speed: 4.4f} sps, " + desc)
                 with torch.no_grad():
