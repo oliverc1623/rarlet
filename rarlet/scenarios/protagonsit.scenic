@@ -214,7 +214,7 @@ num_vehicles_to_place = 4
 lane_width = 3.5
 
 id = 0
-ego = new Car on ego_spawn_pt, with behavior dummy_attacker(), with velocity (5,0)
+ego = new Car on ego_spawn_pt, with velocity (5,0)
 
 victim_spawn_pt = (130 @ -150)
 

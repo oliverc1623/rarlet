@@ -101,7 +101,7 @@ def make_env() -> callable:
             MetaDriveSimulator(timestep=0.02, sumo_map=pathlib.Path("maps/Town06.net.xml"), render=False, real_time=False),
             observation_space=spaces.Box(low=-np.inf, high=np.inf, shape=(258,)),
             action_space=spaces.Box(low=-1, high=1, shape=(2,)),
-            max_steps=700,
+            max_steps=600,
         )
         return env
 
