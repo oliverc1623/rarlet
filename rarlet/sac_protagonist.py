@@ -1,7 +1,6 @@
 # docs and experiment results can be found at https://docs.cleanrl.dev/rl-algorithms/sac/#sac_continuous_actionpy
 import math
 import os
-import pathlib
 import random
 import time
 from collections import deque
@@ -10,30 +9,25 @@ from pathlib import Path
 
 import gymnasium as gym
 import numpy as np
-import scenic
 import torch
 import torch.nn.functional as f
+import tqdm
 import tyro
 import wandb
-from gymnasium import spaces
-from scenic.gym import ScenicGymEnv
-from scenic.simulators.metadrive.simulator import MetaDriveSimulator
 from tensordict import TensorDict, from_module, from_modules
 from tensordict.nn import CudaGraphModule, TensorDictModule
 from torch import nn, optim
 from torchrl.data import LazyTensorStorage, ReplayBuffer
 
 
-root_path = Path(__file__).resolve().parent.parent
-
 os.environ["TORCHDYNAMO_INLINE_INBUILT_NN_MODULES"] = "1"
 
 
 @dataclass
 class Args:
-    """Arguments for the SAC algorithm."""
+    """Define the arguments for the experiment."""
 
-    exp_name: str = Path(__file__).name[: -len(".py")]
+    exp_name: str = Path(__file__).stem
     """the name of this experiment"""
     seed: int = 1
     """seed of the experiment"""
@@ -47,7 +41,7 @@ class Args:
     """number of parallel environments"""
 
     # Algorithm specific arguments
-    env_id: str = "highway-fast-v0"
+    env_id: str = "HalfCheetah-v5"
     """the environment id of the task"""
     total_timesteps: int = 1000000
     """total timesteps of the experiments"""
@@ -73,31 +67,24 @@ class Args:
     """Entropy regularization coefficient."""
     autotune: bool = True
     """automatic tuning of the entropy coefficient"""
-    compile: bool = True
+
+    compile: bool = False
     """whether to use torch.compile."""
-    cudagraphs: bool = True
+    cudagraphs: bool = False
     """whether to use cudagraphs on top of compile."""
+
     measure_burnin: int = 3
     """Number of burn-in iterations for speed measure."""
 
 
-def make_env() -> callable:
-    """Create and configure a gym environment based on the provided parameters."""
+def make_env(env_id: str, seed: int) -> callable:
+    """Create and seed environments."""
 
     def thunk() -> gym.Env:
-        scenario = scenic.scenarioFromFile(
-            "scenarios/protagonsit.scenic",
-            model="scenic.simulators.metadrive.model",
-            mode2D=True,
-        )
-
-        env = ScenicGymEnv(
-            scenario,
-            MetaDriveSimulator(timestep=0.02, sumo_map=pathlib.Path(f"{root_path}/rarlet/maps/Town06.net.xml"), render=False, real_time=False),
-            observation_space=spaces.Box(low=-np.inf, high=np.inf, shape=(258,)),
-            action_space=spaces.Box(low=-1, high=1, shape=(2,)),
-            max_steps=225,
-        )
+        """Create a gym environment."""
+        env = gym.make(env_id)
+        env = gym.wrappers.RecordEpisodeStatistics(env)
+        env.action_space.seed(seed)
         return env
 
     return thunk
@@ -137,13 +124,14 @@ class Actor(nn.Module):
         self.fc_mean = nn.Linear(256, n_act, device=device)
         self.fc_logstd = nn.Linear(256, n_act, device=device)
         # action rescaling
+        action_space = env.single_action_space
         self.register_buffer(
             "action_scale",
-            torch.tensor((env.single_action_space.high - env.single_action_space.low) / 2.0, dtype=torch.float32, device=device),
+            torch.tensor((action_space.high - action_space.low) / 2.0, dtype=torch.float32, device=device),
         )
         self.register_buffer(
             "action_bias",
-            torch.tensor((env.single_action_space.high + env.single_action_space.low) / 2.0, dtype=torch.float32, device=device),
+            torch.tensor((action_space.high + action_space.low) / 2.0, dtype=torch.float32, device=device),
         )
 
     def forward(self, x: torch.tensor) -> tuple[torch.Tensor, torch.Tensor]:
@@ -194,7 +182,7 @@ if __name__ == "__main__":
     device = torch.device("cuda" if torch.cuda.is_available() and args.cuda else "cpu")
 
     # env setup
-    envs = gym.vector.AsyncVectorEnv([make_env() for i in range(args.num_envs)])
+    envs = gym.vector.AsyncVectorEnv([make_env(args.env_id, args.seed + i) for i in range(args.num_envs)])
     n_act = math.prod(envs.single_action_space.shape)
     n_obs = math.prod(envs.single_observation_space.shape)
     assert isinstance(envs.single_action_space, gym.spaces.Box), "only continuous action space is supported"
@@ -312,13 +300,17 @@ if __name__ == "__main__":
     # TRY NOT TO MODIFY: start the game
     obs, _ = envs.reset()
     obs = torch.as_tensor(obs, device=device, dtype=torch.float)
+    num_iterations = int(args.total_timesteps // args.num_envs)
+    pbar = tqdm.tqdm(range(num_iterations))
     start_time = None
     max_ep_ret = -float("inf")
     avg_returns = deque(maxlen=20)
     desc = ""
+    episode_start = np.zeros(envs.num_envs, dtype=bool)
 
-    for global_step in range(args.total_timesteps):
-        if global_step == args.measure_burnin + args.learning_starts:
+    for iter_indx in pbar:
+        global_step = iter_indx * args.num_envs
+        if global_step >= args.measure_burnin + args.learning_starts and start_time is None:
             start_time = time.time()
             measure_burnin = global_step
 
@@ -332,23 +324,17 @@ if __name__ == "__main__":
         # TRY NOT TO MODIFY: execute the game and log data.
         next_obs, rewards, terminations, truncations, infos = envs.step(actions)
 
+        # TRY NOT TO MODIFY: record rewards for plotting purposes
+        for i in range(envs.num_envs):
+            if not episode_start[i]:
+                r = float(rewards[i])
+                max_ep_ret = max(max_ep_ret, r)
+                avg_returns.append(r)
+                desc = f"global_step={global_step}, episodic_return={torch.tensor(avg_returns).mean(): 4.2f} (max={max_ep_ret: 4.2f})"
+
         # TRY NOT TO MODIFY: save data to reply buffer; handle `final_observation`
         next_obs = torch.as_tensor(next_obs, device=device, dtype=torch.float)
         real_next_obs = next_obs.clone()
-
-        if "episode" in infos:
-            # Extract the mask for completed episodes
-            completed_mask = infos["_episode"]
-            episodic_returns = infos["episode"]["r"][completed_mask]
-            episodic_lengths = infos["episode"]["l"][completed_mask]
-
-            # Log each completed episode
-            for ep_return, _ in zip(episodic_returns, episodic_lengths, strict=False):
-                max_ep_ret = max(max_ep_ret, ep_return)
-                avg_returns.append(ep_return)
-                desc = f"global_step={global_step}, episodic_return={torch.tensor(avg_returns).mean(): 4.2f}, normalized_reward={rewards[0]: 4.2f}"
-                print(desc)
-                break
 
         transition = TensorDict(
             observations=obs,
@@ -363,6 +349,7 @@ if __name__ == "__main__":
 
         # TRY NOT TO MODIFY: CRUCIAL step easy to overlook
         obs = next_obs
+        episode_start = np.logical_or(terminations, truncations)
         data = extend_and_sample(transition)
 
         # ALGO LOGIC: training.
@@ -375,19 +362,19 @@ if __name__ == "__main__":
                     alpha.copy_(log_alpha.detach().exp())
 
             # update the target networks
-            if global_step % args.target_network_frequency == 0:
+            if iter_indx % args.target_network_frequency == 0:
                 # lerp is defined as x' = x + w (y-x), which is equivalent to x' = (1-w) x + w y
                 qnet_target.lerp_(qnet_params.data, args.tau)
 
-            if global_step % 100 == 0 and start_time is not None:
+            if iter_indx % (max(1, 100 // args.num_envs)) == 0 and start_time is not None:
                 speed = (global_step - measure_burnin) / (time.time() - start_time)
+                pbar.set_description(f"{speed: 4.4f} sps, " + desc)
                 with torch.no_grad():
                     logs = {
                         "episode_return": torch.tensor(avg_returns).mean(),
                         "actor_loss": out_main["actor_loss"].mean(),
                         "alpha_loss": out_main.get("alpha_loss", 0),
                         "qf_loss": out_main["qf_loss"].mean(),
-                        "normalized_reward": rewards.mean(),
                     }
                 wandb.log(
                     {
