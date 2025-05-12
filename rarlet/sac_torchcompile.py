@@ -309,12 +309,17 @@ if __name__ == "__main__":
         next_obs, rewards, terminations, truncations, infos = envs.step(actions)
 
         # TRY NOT TO MODIFY: record rewards for plotting purposes
-        if "final_info" in infos:
-            for r in infos["final_info"]["episode"]["r"]:
-                r = float(r)
-                max_ep_ret = max(max_ep_ret, r)
-                avg_returns.append(r)
-            desc = f"global_step={global_step}, episodic_return={torch.tensor(avg_returns).mean(): 4.2f} (max={max_ep_ret: 4.2f})"
+        if "final_info" in infos and "episode" in infos["final_info"]:
+            # Extract the mask for completed episodes
+            completed_mask = infos["final_info"]["_episode"]
+            episodic_returns = infos["final_info"]["episode"]["r"][completed_mask]
+            episodic_lengths = infos["final_info"]["episode"]["l"][completed_mask]
+
+            # Log each completed episode
+            for ep_return, _ in zip(episodic_returns, episodic_lengths, strict=False):
+                max_ep_ret = max(max_ep_ret, ep_return)
+                avg_returns.append(ep_return)
+                desc = f"global_step={global_step}, episodic_return={torch.tensor(avg_returns).mean(): 4.2f}, (max={max_ep_ret: 4.2f})"
 
         # TRY NOT TO MODIFY: save data to reply buffer; handle `final_observation`
         next_obs = torch.as_tensor(next_obs, device=device, dtype=torch.float)
@@ -342,7 +347,7 @@ if __name__ == "__main__":
         # ALGO LOGIC: training.
         if global_step > args.learning_starts:
             out_main = update_main(data)
-            if global_step % args.policy_frequency == 0:  # TD 3 Delayed update support
+            if iter_indx % args.policy_frequency == 0:  # TD 3 Delayed update support
                 for _ in range(args.policy_frequency):  # compensate for the delay by doing 'actor_update_interval' instead of 1
                     out_main.update(update_pol(data))
 
