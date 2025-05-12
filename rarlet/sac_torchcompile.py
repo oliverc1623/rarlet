@@ -176,7 +176,10 @@ if __name__ == "__main__":
     device = torch.device("cuda" if torch.cuda.is_available() and args.cuda else "cpu")
 
     # env setup
-    envs = gym.vector.SyncVectorEnv([make_env(args.env_id, args.seed + i, 0, args.capture_video, run_name) for i in range(args.num_envs)])
+    envs = gym.vector.SyncVectorEnv(
+        [make_env(args.env_id, args.seed + i, 0, args.capture_video, run_name) for i in range(args.num_envs)],
+        autoreset_mode=gym.vector.AutoresetMode.SAME_STEP,
+    )
     n_act = math.prod(envs.single_action_space.shape)
     n_obs = math.prod(envs.single_observation_space.shape)
     assert isinstance(envs.single_action_space, gym.spaces.Box), "only continuous action space is supported"
@@ -306,21 +309,19 @@ if __name__ == "__main__":
         next_obs, rewards, terminations, truncations, infos = envs.step(actions)
 
         # TRY NOT TO MODIFY: record rewards for plotting purposes
-        if "episode" in infos:
-            # Extract the mask for completed episodes
-            completed_mask = infos["_episode"]
-            episodic_returns = infos["episode"]["r"][completed_mask]
-            episodic_lengths = infos["episode"]["l"][completed_mask]
-
-            # Log each completed episode
-            for ep_return, _ in zip(episodic_returns, episodic_lengths, strict=False):
-                max_ep_ret = max(max_ep_ret, ep_return)
-                avg_returns.append(ep_return)
-                desc = f"global_step={global_step}, episodic_return={torch.tensor(avg_returns).mean(): 4.2f} (max={max_ep_ret: 4.2f})"
+        if "final_info" in infos:
+            for r in infos["final_info"]["episode"]["r"]:
+                r = float(r)
+                max_ep_ret = max(max_ep_ret, r)
+                avg_returns.append(r)
+            desc = f"global_step={global_step}, episodic_return={torch.tensor(avg_returns).mean(): 4.2f} (max={max_ep_ret: 4.2f})"
 
         # TRY NOT TO MODIFY: save data to reply buffer; handle `final_observation`
         next_obs = torch.as_tensor(next_obs, device=device, dtype=torch.float)
         real_next_obs = next_obs.clone()
+        for idx, trunc in enumerate(truncations):
+            if trunc:
+                real_next_obs[idx] = torch.as_tensor(infos["final_obs"][idx], device=device, dtype=torch.float)
 
         transition = TensorDict(
             observations=obs,
