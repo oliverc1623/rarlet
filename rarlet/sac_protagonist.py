@@ -27,7 +27,6 @@ from torchrl.data import LazyTensorStorage, ReplayBuffer
 
 
 warnings.filterwarnings("ignore")
-
 os.environ["TORCHDYNAMO_INLINE_INBUILT_NN_MODULES"] = "1"
 
 
@@ -100,9 +99,11 @@ def make_env() -> callable:
             scenario,
             MetaDriveSimulator(timestep=0.02, sumo_map=pathlib.Path("maps/Town06.net.xml"), render=False, real_time=False),
             observation_space=spaces.Box(low=-np.inf, high=np.inf, shape=(258,)),
-            action_space=spaces.Box(low=-1, high=1, shape=(2,)),
+            action_space=spaces.Box(low=-1, high=1, shape=(1,)),
             max_steps=600,
         )
+        env = gym.wrappers.RecordEpisodeStatistics(env)
+        # TODO: seed the environment
         return env
 
     return thunk
@@ -200,7 +201,10 @@ if __name__ == "__main__":
     device = torch.device("cuda" if torch.cuda.is_available() and args.cuda else "cpu")
 
     # env setup
-    envs = gym.vector.AsyncVectorEnv([make_env() for i in range(args.num_envs)])
+    envs = gym.vector.AsyncVectorEnv(
+        [make_env() for i in range(args.num_envs)],
+        autoreset_mode=gym.vector.AutoresetMode.SAME_STEP,
+    )
     n_act = math.prod(envs.single_action_space.shape)
     n_obs = math.prod(envs.single_observation_space.shape)
     assert isinstance(envs.single_action_space, gym.spaces.Box), "only continuous action space is supported"
@@ -241,7 +245,7 @@ if __name__ == "__main__":
         alpha = torch.as_tensor(args.alpha, device=device)
 
     envs.single_observation_space.dtype = np.float32
-    rb = ReplayBuffer(storage=LazyTensorStorage(args.buffer_size, device=device))
+    rb = ReplayBuffer(storage=LazyTensorStorage(args.buffer_size // args.num_envs, device=device))
 
     def batched_qf(params: any, obs: any, action: any, next_q_value=None) -> torch.Tensor:  # noqa: ANN001
         """Compute the Q-value for a batch of observations and actions using the provided parameters."""
@@ -343,16 +347,19 @@ if __name__ == "__main__":
         next_obs, rewards, terminations, truncations, infos = envs.step(actions)
 
         # TRY NOT TO MODIFY: record rewards for plotting purposes
-        for i in range(envs.num_envs):
-            if not episode_start[i]:
-                r = float(rewards[i])
+        if "final_info" in infos:
+            for r in infos["final_info"]["episode"]["r"]:
+                r = float(r)
                 max_ep_ret = max(max_ep_ret, r)
                 avg_returns.append(r)
-                desc = f"global_step={global_step}, episodic_return={torch.tensor(avg_returns).mean(): 4.2f} (max={max_ep_ret: 4.2f})"
+            desc = f"global_step={global_step}, episodic_return={torch.tensor(avg_returns).mean(): 4.2f} (max={max_ep_ret: 4.2f})"
 
         # TRY NOT TO MODIFY: save data to reply buffer; handle `final_observation`
         next_obs = torch.as_tensor(next_obs, device=device, dtype=torch.float)
         real_next_obs = next_obs.clone()
+        for idx, trunc in enumerate(truncations):
+            if trunc:
+                real_next_obs[idx] = torch.as_tensor(infos["final_obs"][idx], device=device, dtype=torch.float)
 
         transition = TensorDict(
             observations=obs,
