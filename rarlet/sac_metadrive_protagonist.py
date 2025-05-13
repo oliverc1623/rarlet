@@ -45,7 +45,7 @@ class Args:
     """number of parallel environments"""
 
     # Algorithm specific arguments
-    env_id: str = "HalfCheetah-v5"
+    env_id: str = "S-Map"
     """the environment id of the task"""
     total_timesteps: int = 1000000
     """total timesteps of the experiments"""
@@ -65,6 +65,8 @@ class Args:
     """the learning rate of the Q network network optimizer"""
     policy_frequency: int = 2
     """the frequency of training policy (delayed)"""
+    gradient_steps: int = 1
+    """the number of gradient steps to be taken per iteration"""
     target_network_frequency: int = 1  # Denis Yarats' implementation delays this by 2.
     """the frequency of updates for the target nerworks"""
     alpha: float = 0.2
@@ -88,19 +90,19 @@ def make_env() -> callable:
         """Create a gym environment."""
         env = CustomMetaDriveEnv(
             dict(
-                map="C",
+                map="S",
                 horizon=500,
                 # scenario setting
-                random_spawn_lane_index=False,
-                num_scenarios=1,
+                random_spawn_lane_index=True,
+                num_scenarios=1000,
                 start_seed=5,
-                traffic_density=0,
+                traffic_density=0.1,
                 accident_prob=0,
                 log_level=50,
             ),
         )
         env = gym.wrappers.RecordEpisodeStatistics(env)
-        # TODO: seed the environment
+        env.action_space.seed(0)
         return env
 
     return thunk
@@ -316,6 +318,9 @@ if __name__ == "__main__":
         update_main = CudaGraphModule(update_main, in_keys=[], out_keys=[])
         update_pol = CudaGraphModule(update_pol, in_keys=[], out_keys=[])
 
+    if args.gradient_steps < 0:
+        args.gradient_steps = args.policy_frequency * args.num_envs
+
     # TRY NOT TO MODIFY: start the game
     obs, _ = envs.reset()
     obs = torch.as_tensor(obs, device=device, dtype=torch.float)
@@ -383,13 +388,13 @@ if __name__ == "__main__":
         if global_step > args.learning_starts:
             out_main = update_main(data)
             if global_step % args.policy_frequency == 0:  # TD 3 Delayed update support
-                for _ in range(args.policy_frequency):  # compensate for the delay by doing 'actor_update_interval' instead of 1
+                for _ in range(args.gradient_steps):  # compensate for the delay by doing 'actor_update_interval' instead of 1
                     out_main.update(update_pol(data))
 
                     alpha.copy_(log_alpha.detach().exp())
 
             # update the target networks
-            if iter_indx % args.target_network_frequency == 0:
+            if global_step % args.target_network_frequency == 0:
                 # lerp is defined as x' = x + w (y-x), which is equivalent to x' = (1-w) x + w y
                 qnet_target.lerp_(qnet_params.data, args.tau)
 
