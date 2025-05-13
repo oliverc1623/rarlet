@@ -60,7 +60,7 @@ spec:
             values:
             - k8s-gpu-5.ucsc.edu
   tolerations: 
-  - key: "nautilus.io/reservations"
+  - key: "nautilus.io/reservation"
     operator: "Equal"
     value: "gilpin-lab"
     effect: "NoSchedule"
