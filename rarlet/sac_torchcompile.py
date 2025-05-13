@@ -8,6 +8,7 @@ import math
 import os
 import random
 import time
+import warnings
 from collections import deque
 from dataclasses import dataclass
 
@@ -25,6 +26,10 @@ from tensordict.nn import CudaGraphModule, TensorDictModule
 
 # from stable_baselines3.common.buffers import ReplayBuffer
 from torchrl.data import LazyTensorStorage, ReplayBuffer
+
+warnings.filterwarnings("ignore")
+os.environ["TORCHDYNAMO_INLINE_INBUILT_NN_MODULES"] = "1"
+wandb.login(key="82555a3ad6bd991b8c4019a5a7a86f61388f6df1")
 
 
 @dataclass
@@ -347,18 +352,18 @@ if __name__ == "__main__":
         # ALGO LOGIC: training.
         if global_step > args.learning_starts:
             out_main = update_main(data)
-            if iter_indx % args.policy_frequency == 0:  # TD 3 Delayed update support
+            if global_step % args.policy_frequency == 0:  # TD 3 Delayed update support
                 for _ in range(args.policy_frequency):  # compensate for the delay by doing 'actor_update_interval' instead of 1
                     out_main.update(update_pol(data))
 
                     alpha.copy_(log_alpha.detach().exp())
 
             # update the target networks
-            if iter_indx % args.target_network_frequency == 0:
+            if global_step % args.target_network_frequency == 0:
                 # lerp is defined as x' = x + w (y-x), which is equivalent to x' = (1-w) x + w y
                 qnet_target.lerp_(qnet_params.data, args.tau)
 
-            if iter_indx % 100 == 0 and start_time is not None:
+            if iter_indx % (100 // args.num_envs) == 0 and start_time is not None:
                 speed = (global_step - measure_burnin) / (time.time() - start_time)
                 pbar.set_description(f"{speed: 4.4f} sps, " + desc)
                 with torch.no_grad():
