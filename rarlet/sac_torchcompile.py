@@ -68,6 +68,8 @@ class Args:
     """the learning rate of the Q network network optimizer"""
     policy_frequency: int = 2
     """the frequency of training policy (delayed)"""
+    gradient_steps: int = 1
+    """the number of gradient steps to be taken per iteration"""
     target_network_frequency: int = 1  # Denis Yarats' implementation delays this by 2.
     """the frequency of updates for the target nerworks"""
     alpha: float = 0.2
@@ -224,7 +226,7 @@ if __name__ == "__main__":
         alpha = torch.as_tensor(args.alpha, device=device)
 
     envs.single_observation_space.dtype = np.float32
-    rb = ReplayBuffer(storage=LazyTensorStorage(args.buffer_size // args.num_envs, device=device))
+    rb = ReplayBuffer(storage=LazyTensorStorage(args.buffer_size, device=device))
 
     def batched_qf(params, obs, action, next_q_value=None):
         with params.to_module(qnet):
@@ -352,14 +354,14 @@ if __name__ == "__main__":
         # ALGO LOGIC: training.
         if global_step > args.learning_starts:
             out_main = update_main(data)
-            if global_step % args.policy_frequency == 0:  # TD 3 Delayed update support
-                for _ in range(args.policy_frequency):  # compensate for the delay by doing 'actor_update_interval' instead of 1
+            if iter_indx % args.policy_frequency == 0:  # TD 3 Delayed update support
+                for _ in range(args.gradient_steps):  # compensate for the delay by doing 'actor_update_interval' instead of 1
                     out_main.update(update_pol(data))
 
                     alpha.copy_(log_alpha.detach().exp())
 
             # update the target networks
-            if global_step % args.target_network_frequency == 0:
+            if iter_indx % args.target_network_frequency == 0:
                 # lerp is defined as x' = x + w (y-x), which is equivalent to x' = (1-w) x + w y
                 qnet_target.lerp_(qnet_params.data, args.tau)
 
