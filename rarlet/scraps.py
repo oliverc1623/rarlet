@@ -202,19 +202,20 @@ from IPython.display import Image
 def create_env(need_monitor=False):
     env = MetaDriveEnv(
         dict(
-            map="C",
+            map="S",
             horizon=500,
             # scenario setting
-            random_spawn_lane_index=False,
+            random_spawn_lane_index=True,
             num_scenarios=1,
-            start_seed=5,
-            traffic_density=0,
+            start_seed=1,
+            traffic_density=0.1,
             accident_prob=0,
             log_level=50,
         )
     )
     if need_monitor:
         env = Monitor(env)
+    env.action_space.seed(0)
     return env
 
 
@@ -222,6 +223,18 @@ def create_env(need_monitor=False):
 env = create_env()
 env.reset()
 ret = env.render(mode="topdown", window=False, screen_size=(600, 600), camera_position=(50, 50))
+env.close()
+plt.axis("off")
+plt.imshow(ret)
+
 # %%
-env.action_space
+
+env.reset(seed=1)
+ret = env.render(mode="topdown", window=False, screen_size=(600, 600), camera_position=(50, 50))
+env.close()
+plt.axis("off")
+plt.imshow(ret)
+
+# %%
+
 # %%
