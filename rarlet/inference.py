@@ -90,7 +90,7 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 
 protagonist = Actor(env, device=device, n_act=n_act, n_obs=n_obs)
 protagonist.load_state_dict(
-    torch.load("../../../pvcvolume/rarlet/protagonist_models/S-Map__SAC_protagonist__21__True__True_actor.pt"),
+    torch.load("../../../pvcvolume/rarlet/protagonist_models/S-Map__test3__21__True__True_actor.pt"),
 )
 
 # %%
@@ -101,7 +101,7 @@ try:
         done = False
         while not done:
             obs = torch.as_tensor(obs, device=device, dtype=torch.float).unsqueeze(0)
-            _, _, action = protagonist.get_action(obs)
+            action, _, _ = protagonist.get_action(obs)
             action = action.squeeze().detach().cpu().numpy()
 
             obs, reward, done, _, info = env.step(action)
@@ -117,11 +117,11 @@ try:
                 print("episode_reward", total_reward)
                 total_reward = 0
                 break
-        env.top_down_renderer.generate_gif(f"sac_protagonist_scene{seed+i}.gif")
+        env.top_down_renderer.generate_gif(f"movies/sac_protagonist_scene{seed+i}.gif")
 finally:
     env.close()
 
 # %%
-Image(Path.open("sac_protagonist_scene54.gif", "rb").read())
+Image(Path.open("movies/sac_protagonist_scene48.gif", "rb").read())
 
 # %%
