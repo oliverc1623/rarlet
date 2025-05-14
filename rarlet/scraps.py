@@ -196,7 +196,7 @@ import matplotlib.pyplot as plt
 from stable_baselines3.common.monitor import Monitor
 from metadrive.component.map.base_map import BaseMap
 from metadrive.utils.doc_utils import generate_gif
-from IPython.display import Image
+from IPython.display import clear_output, Image
 
 
 def create_env(need_monitor=False):
@@ -236,5 +236,47 @@ plt.axis("off")
 plt.imshow(ret)
 
 # %%
+
+from my_metadrive_env import AdversaryMetaDriveEnv
+from IPython.display import clear_output, Image
+
+# %%
+env = AdversaryMetaDriveEnv(
+    dict(
+        map="SSSS",
+        horizon=500,
+        # scenario setting
+        random_spawn_lane_index=False,
+        num_scenarios=1,
+        start_seed=1,
+        traffic_density=0.0,
+        accident_prob=0,
+        log_level=50,
+        vehicle_config=dict(
+            spawn_longitude=100,
+        ),
+    )
+)
+
+# %%
+try:
+    env.reset(1)
+    for _ in range(200):
+        env.step([0, 0])  # ego car is static
+        env.render(
+            mode="topdown",
+            window=False,
+            screen_size=(400, 400),
+            camera_position=(100, 7),
+            scaling=2,
+            screen_record=True,
+            text={"Has vehicle": bool(len(env.engine.traffic_manager.spawned_objects)), "Timestep": env.episode_step},
+        )
+    assert env
+    env.top_down_renderer.generate_gif()
+finally:
+    env.close()
+    clear_output()
+Image(open("demo.gif", "rb").read())
 
 # %%
