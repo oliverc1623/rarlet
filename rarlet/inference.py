@@ -94,34 +94,34 @@ protagonist.load_state_dict(
 )
 
 # %%
-total_reward = 0
-obs, _ = env.reset(seed=seed)
-
-# %%
 try:
-    for _ in range(1000):
-        obs = torch.as_tensor(obs, device=device, dtype=torch.float).unsqueeze(0)
-        action, _, _ = protagonist.get_action(obs)
-        action = action.squeeze().detach().cpu().numpy()
+    for i in range(8):
+        total_reward = 0
+        obs, _ = env.reset(seed=seed + i)
+        done = False
+        while not done:
+            obs = torch.as_tensor(obs, device=device, dtype=torch.float).unsqueeze(0)
+            action, _, _ = protagonist.get_action(obs)
+            action = action.squeeze().detach().cpu().numpy()
 
-        obs, reward, done, _, info = env.step(action)
-        total_reward += reward
-        ret = env.render(
-            mode="topdown",
-            screen_record=True,
-            window=False,
-            screen_size=(600, 600),
-            camera_position=(50, 50),
-        )
-        if done:
-            print("episode_reward", total_reward)
-            break
-    env.top_down_renderer.generate_gif()
+            obs, reward, done, _, info = env.step(action)
+            total_reward += reward
+            ret = env.render(
+                mode="topdown",
+                screen_record=True,
+                window=False,
+                screen_size=(600, 600),
+                camera_position=(50, 50),
+            )
+            if done:
+                print("episode_reward", total_reward)
+                total_reward = 0
+                break
+        env.top_down_renderer.generate_gif(f"sac_protagonist_scene{seed+i}.gif")
 finally:
     env.close()
-print("gif generation is finished ...")
 
 # %%
-Image(Path.open("demo.gif", "rb").read())
+Image(Path.open("sac_protagonist_scene50.gif", "rb").read())
 
 # %%
