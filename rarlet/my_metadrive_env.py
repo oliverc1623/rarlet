@@ -47,7 +47,7 @@ class MovingExampleManager(BaseManager):
         """Reset the environment."""
         for i in range(self.num_idm_victims):
             # spawn victim vehicles
-            lat_offset = self.rng.uniform(0, 3.5 * 2)
+            lat_offset = self.rng.uniform(0, 3 * 3)
             obj = self.spawn_object(
                 DefaultVehicle,
                 vehicle_config=dict(),
@@ -82,6 +82,10 @@ class AdversaryMetaDriveEnv(MetaDriveEnv):
                 out_of_road_done=True,
                 map="SSS",
                 num_idm_victims=5,
+                victim_crash_reward=10.0,
+                ego_crash_penalty=-10.0,
+                forward_reward=0.05,
+                speed_reward=0.1,
             ),
         )
         return cfg
@@ -119,12 +123,11 @@ class AdversaryMetaDriveEnv(MetaDriveEnv):
         long_ego, _ = ego.navigation.current_ref_lanes[0].local_coordinates(ego.position)
 
         # victim crash reward
-        for veh in self.vehicles:
-            if veh is ego:
+        for obj_id, obj in self.engine.get_objects().items():
+            if obj_id == vehicle_id:
                 continue
-            print(f"victim vehicle: {veh}")
-            long_v, _ = veh.lane.local_coordinates(veh.position)
-            if long_v < long_ego - 1.0 and (veh.crash_vehicle or veh.crash_object or veh.crash_sidewalk):
+            long_v, _ = obj.lane.local_coordinates(obj.position)
+            if long_v < long_ego - 1.0 and (obj.crash_vehicle or obj.crash_object or obj.crash_sidewalk):
                 behind_crashes += 1
 
         # positive reward is linear in number of victim crashes this step
