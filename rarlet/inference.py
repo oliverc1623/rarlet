@@ -101,7 +101,7 @@ try:
         done = False
         while not done:
             obs = torch.as_tensor(obs, device=device, dtype=torch.float).unsqueeze(0)
-            action, _, _ = protagonist.get_action(obs)
+            _, _, action = protagonist.get_action(obs)
             action = action.squeeze().detach().cpu().numpy()
 
             obs, reward, done, _, info = env.step(action)
@@ -122,6 +122,6 @@ finally:
     env.close()
 
 # %%
-Image(Path.open("sac_protagonist_scene50.gif", "rb").read())
+Image(Path.open("sac_protagonist_scene54.gif", "rb").read())
 
 # %%
