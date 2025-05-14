@@ -257,12 +257,11 @@ env = AdversaryMetaDriveEnv(
         ),
     )
 )
-
 # %%
 try:
     env.reset(1)
     for _ in range(200):
-        env.step([0, 0])  # ego car is static
+        _, r, _, _, _ = env.step([0, 0])  # ego car is static
         env.render(
             mode="topdown",
             window=False,
@@ -270,7 +269,11 @@ try:
             camera_position=(100, 7),
             scaling=2,
             screen_record=True,
-            text={"Has vehicle": bool(len(env.engine.traffic_manager.spawned_objects)), "Timestep": env.episode_step},
+            text={
+                "Has vehicle": bool(len(env.engine.traffic_manager.spawned_objects)),
+                "Timestep": env.episode_step,
+                "Reward": r,
+            },
         )
     assert env
     env.top_down_renderer.generate_gif()
