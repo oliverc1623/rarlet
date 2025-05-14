@@ -386,18 +386,18 @@ if __name__ == "__main__":
         # ALGO LOGIC: training.
         if global_step > args.learning_starts:
             out_main = update_main(data)
-            if global_step % args.policy_frequency == 0:  # TD 3 Delayed update support
+            if iter_indx % args.policy_frequency == 0:  # TD 3 Delayed update support
                 for _ in range(args.gradient_steps):  # compensate for the delay by doing 'actor_update_interval' instead of 1
                     out_main.update(update_pol(data))
 
                     alpha.copy_(log_alpha.detach().exp())
 
             # update the target networks
-            if global_step % args.target_network_frequency == 0:
+            if iter_indx % args.target_network_frequency == 0:
                 # lerp is defined as x' = x + w (y-x), which is equivalent to x' = (1-w) x + w y
                 qnet_target.lerp_(qnet_params.data, args.tau)
 
-            if iter_indx % (max(1, 100 // args.num_envs)) == 0 and start_time is not None:
+            if global_step % (100 * args.num_envs) == 0 and start_time is not None:
                 speed = (global_step - measure_burnin) / (time.time() - start_time)
                 pbar.set_description(f"{speed: 4.4f} sps, " + desc)
                 with torch.no_grad():
