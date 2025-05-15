@@ -93,7 +93,7 @@ def make_env(seed: int) -> callable:
         env = AdversaryMetaDriveEnv(
             dict(
                 map="SSSS",
-                horizon=500,
+                horizon=250,
                 # scenario setting
                 random_spawn_lane_index=False,
                 num_scenarios=args.num_envs,

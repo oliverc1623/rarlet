@@ -127,7 +127,10 @@ class AdversaryMetaDriveEnv(MetaDriveEnv):
                 behind_crashes += 1
 
         # positive reward is linear in number of victim crashes this step
-        sparse_reward = self.config["victim_crash_reward"] * behind_crashes
+        if behind_crashes > 0:
+            sparse_reward = self.config["victim_crash_reward"]
+        else:
+            sparse_reward = 0.0
         step_info["behind_crashes"] = behind_crashes
 
         # dense reward for forward progress and speed
