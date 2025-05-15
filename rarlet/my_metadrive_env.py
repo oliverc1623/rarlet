@@ -95,7 +95,7 @@ class AdversaryMetaDriveEnv(MetaDriveEnv):
                 num_idm_victims=5,
                 victim_crash_reward=10.0,
                 ego_crash_penalty=10.0,
-                forward_reward=1.0,
+                forward_reward=0.1,
                 speed_reward=0.1,
                 scenario_seed=0,
             ),
