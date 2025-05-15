@@ -7,7 +7,7 @@ import gymnasium as gym
 import torch
 import torch.nn.functional as f
 from IPython.display import Image
-from my_metadrive_env import CustomMetaDriveEnv
+from my_metadrive_env import AdversaryMetaDriveEnv
 from torch import nn
 
 
@@ -68,17 +68,21 @@ class Actor(nn.Module):
 seed = 47
 num_envs = 1
 
-env = CustomMetaDriveEnv(
+env = AdversaryMetaDriveEnv(
     dict(
-        map="S",
+        map="SSSS",
         horizon=500,
         # scenario setting
-        random_spawn_lane_index=True,
+        random_spawn_lane_index=False,
         num_scenarios=8,
         start_seed=seed,
-        traffic_density=0.1,
+        traffic_density=0.0,
         accident_prob=0,
         log_level=50,
+        vehicle_config=dict(
+            spawn_longitude=150,
+        ),
+        num_idm_victims=1,
     ),
 )
 
@@ -90,38 +94,43 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 
 protagonist = Actor(env, device=device, n_act=n_act, n_obs=n_obs)
 protagonist.load_state_dict(
-    torch.load("../../../pvcvolume/rarlet/protagonist_models/S-Map__test3__21__True__True_actor.pt"),
+    torch.load("../../../pvcvolume/rarlet/protagonist_models/SSSS__adversary0__1__True__True_actor.pt"),
 )
 
 # %%
 try:
-    for i in range(8):
-        total_reward = 0
-        obs, _ = env.reset(seed=seed + i)
-        done = False
-        while not done:
-            obs = torch.as_tensor(obs, device=device, dtype=torch.float).unsqueeze(0)
-            action, _, _ = protagonist.get_action(obs)
-            action = action.squeeze().detach().cpu().numpy()
+    total_reward = 0
+    obs, _ = env.reset(seed=seed)
+    done = False
+    trunc = False
+    while not done and not trunc:
+        obs = torch.as_tensor(obs, device=device, dtype=torch.float).unsqueeze(0)
+        action, _, _ = protagonist.get_action(obs)
+        action = action.squeeze().detach().cpu().numpy()
 
-            obs, reward, done, _, info = env.step(action)
-            total_reward += reward
-            ret = env.render(
-                mode="topdown",
-                screen_record=True,
-                window=False,
-                screen_size=(600, 600),
-                camera_position=(50, 50),
-            )
-            if done:
-                print("episode_reward", total_reward)
-                total_reward = 0
-                break
-        env.top_down_renderer.generate_gif(f"movies/sac_protagonist_scene{seed+i}.gif")
+        obs, reward, done, trunc, info = env.step(action)
+        total_reward += reward
+        ret = env.render(
+            mode="topdown",
+            screen_record=True,
+            window=False,
+            screen_size=(400, 400),
+            camera_position=(100, 7),
+            scaling=2,
+            text={
+                "Timestep": env.episode_step,
+                "Reward": reward,
+                "Victim crashes": info["behind_crashes"],
+            },
+        )
+    print(info)
+    print("episode_reward", total_reward)
+    total_reward = 0
+    env.top_down_renderer.generate_gif(f"movies/sac_adversary_scene{seed}.gif")
 finally:
     env.close()
 
 # %%
-Image(Path.open("movies/sac_protagonist_scene48.gif", "rb").read())
+Image(Path.open("movies/sac_adversary_scene47.gif", "rb").read())
 
 # %%
