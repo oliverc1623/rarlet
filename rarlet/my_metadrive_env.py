@@ -3,9 +3,8 @@ from typing import Any
 import numpy as np
 from metadrive.component.vehicle.vehicle_type import DefaultVehicle
 from metadrive.envs import MetaDriveEnv
-from metadrive.manager import BaseManager
+from metadrive.manager.traffic_manager import TrafficManager
 from metadrive.policy.expert_policy import ExpertPolicy
-from metadrive.policy.idm_policy import IDMPolicy
 
 
 class CustomMetaDriveEnv(MetaDriveEnv):
@@ -25,52 +24,36 @@ def clip(a: float, low: float, high: float) -> float:
     return min(max(a, low), high)
 
 
-class MovingExampleManager(BaseManager):
+class MovingExampleManager(TrafficManager):
     """A custom manager for the MetaDrive environment."""
 
-    def __init__(self):
-        super().__init__()
-        self.generated_v = None
+    def _create_basic_vehicles(self, map, traffic_density) -> None:  # noqa: A002, ANN001, ARG002
+        """Create basic vehicles for the environment with one protagonist agent."""
+        total_num = len(self.respawn_lanes)
+        for lane in self.respawn_lanes:
+            _traffic_vehicles = []
+            total_num = int(lane.length / self.VEHICLE_GAP)
+            vehicle_longs = [i * self.VEHICLE_GAP for i in range(total_num)]
+            self.np_random.shuffle(vehicle_longs)
+            for long in vehicle_longs[: int(np.ceil(traffic_density * len(vehicle_longs)))]:
+                vehicle_type = self.random_vehicle_type()
+                traffic_v_config = {"spawn_lane_index": lane.index, "spawn_longitude": long}
+                traffic_v_config.update(self.engine.global_config["traffic_vehicle_config"])
+                random_v = self.spawn_object(vehicle_type, vehicle_config=traffic_v_config)
+                from metadrive.policy.idm_policy import IDMPolicy
 
-        # ===== Access the parameters in engine.global_config =====
-        self.num_idm_victims = self.engine.global_config["num_idm_victims"]
-
-    """Customize manager to spawn vehicles."""
-
-    def before_step(self) -> None:
-        """Set actions for all spawned objects."""
-        for obj_id, obj in self.spawned_objects.items():
-            p = self.get_policy(obj_id)
-            obj.before_step(p.act())  # set action
-
-    def reset(self) -> None:
-        """Reset the environment."""
-        self.scenario_seed = self.engine.global_config["scenario_seed"]
-        rng = np.random.default_rng(self.scenario_seed)
-        for i in range(self.num_idm_victims):
-            # spawn victim vehicles
-            lat_offset = rng.uniform(0, 3 * 3)
-            obj = self.spawn_object(
-                DefaultVehicle,
-                vehicle_config=dict(),
-                position=(i * 10, lat_offset),
-                heading=0,
-            )
-            self.add_policy(obj.id, IDMPolicy, obj, self.generate_seed())
-
-        # add ppo policy protagonist
-        obj = self.spawn_object(
-            DefaultVehicle,
-            vehicle_config=dict(use_special_color=True),
-            position=(0, 0),
-            heading=0,
-        )
-        self.add_policy(obj.id, ExpertPolicy, obj, self.generate_seed())
-
-    def after_step(self, *args, **kwargs) -> None:  # noqa: ANN003, ARG002, ANN002
-        """Update the state of all spawned objects."""
-        for obj in self.spawned_objects.values():
-            obj.after_step()
+                self.add_policy(random_v.id, IDMPolicy, random_v, self.generate_seed())
+                self._traffic_vehicles.append(random_v)
+        # Add the protagonist vehicle
+        last_lane = self.respawn_lanes[-1]
+        protagonist_v_config = {
+            "spawn_lane_index": last_lane.index,
+            "spawn_longitude": 0,
+            "use_special_color": True,
+        }
+        protagonist_v_config.update(self.engine.global_config["traffic_vehicle_config"])
+        protagonist = self.spawn_object(DefaultVehicle, vehicle_config=protagonist_v_config)
+        self.add_policy(protagonist.id, ExpertPolicy, protagonist, self.generate_seed())
 
 
 class AdversaryMetaDriveEnv(MetaDriveEnv):
@@ -92,19 +75,16 @@ class AdversaryMetaDriveEnv(MetaDriveEnv):
                 crash_vehicle_done=True,
                 out_of_road_done=True,
                 map="SSS",
-                num_idm_victims=5,
                 victim_crash_reward=10.0,
                 ego_crash_penalty=10.0,
                 forward_reward=0.1,
                 speed_reward=0.1,
-                scenario_seed=0,
             ),
         )
         return cfg
 
     def reset(self, seed: int, options: Any = None) -> tuple:  # noqa: ARG002
         """Call the parent reset method."""
-        self.config["scenario_seed"] = seed
         obs, info = super().reset(seed)
         return obs, info
 
