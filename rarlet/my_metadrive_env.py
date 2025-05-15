@@ -52,8 +52,8 @@ class MovingExampleManager(TrafficManager):
             "spawn_lane_index": last_lane.index,
             "spawn_longitude": 0,
             "use_special_color": True,
+            "spawn_velocity": (0, 0),
         }
-        protagonist_v_config.update(self.engine.global_config["traffic_vehicle_config"])
         protagonist = self.spawn_object(DefaultVehicle, vehicle_config=protagonist_v_config)
         self.add_policy(protagonist.id, ExpertPolicy, protagonist, self.generate_seed())
 

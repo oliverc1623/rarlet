@@ -6,6 +6,8 @@ import pathlib
 import pstats
 from io import StringIO
 
+import metadrive.component
+import metadrive.component.vehicle
 import numpy as np
 import scenic
 from gymnasium import spaces
@@ -244,23 +246,25 @@ from IPython.display import clear_output, Image
 env = AdversaryMetaDriveEnv(
     dict(
         map="SSSS",
-        horizon=500,
+        horizon=125,
         # scenario setting
-        random_spawn_lane_index=False,
+        random_spawn_lane_index=True,
         num_scenarios=1,
         start_seed=1,
-        traffic_density=0.0,
-        accident_prob=0,
+        traffic_density=0.2,
+        accident_prob=0.0,
         log_level=50,
         vehicle_config=dict(
-            spawn_longitude=150,
+            spawn_longitude=100,
+            spawn_velocity=(5, 0),
         ),
+        traffic_mode="basic",
     )
 )
 # %%
 try:
     env.reset(1)
-    for _ in range(200):
+    for _ in range(125):
         _, r, _, _, info = env.step([0, 0])  # ego car is static
         env.render(
             mode="topdown",
@@ -272,7 +276,7 @@ try:
             text={
                 "Has vehicle": bool(len(env.engine.traffic_manager.spawned_objects)),
                 "Timestep": env.episode_step,
-                "Reward": r,
+                "Reward": f"{r:0.2f}",
                 "Victim crashes": info["behind_crashes"],
             },
         )
@@ -282,5 +286,6 @@ finally:
     env.close()
     clear_output()
 Image(open("demo.gif", "rb").read())
+
 
 # %%
