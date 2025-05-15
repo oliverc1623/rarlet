@@ -253,7 +253,7 @@ env = AdversaryMetaDriveEnv(
         accident_prob=0,
         log_level=50,
         vehicle_config=dict(
-            spawn_longitude=100,
+            spawn_longitude=150,
         ),
     )
 )
@@ -261,7 +261,7 @@ env = AdversaryMetaDriveEnv(
 try:
     env.reset(1)
     for _ in range(200):
-        _, r, _, _, _ = env.step([0, 0])  # ego car is static
+        _, r, _, _, info = env.step([0, 0])  # ego car is static
         env.render(
             mode="topdown",
             window=False,
@@ -273,6 +273,7 @@ try:
                 "Has vehicle": bool(len(env.engine.traffic_manager.spawned_objects)),
                 "Timestep": env.episode_step,
                 "Reward": r,
+                "Victim crashes": info["behind_crashes"],
             },
         )
     assert env
