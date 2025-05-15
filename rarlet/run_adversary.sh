@@ -6,7 +6,7 @@ scripts=(
 for script in "${scripts[@]}"; do
     for n in 1 2 5 8; do
         if [[ $script == *_adversary.py ]]; then
-            python $script --seed=1 --exp-name "adversary0" --env-id "SSSS" --num-envs 8 --gradient-steps -1 --num_idm_vehicles 1 --compile --cudagraphs
+            python $script --seed=1 --exp-name adversary0_idm$n --env-id "SSSS" --num-envs 8 --gradient-steps -1 --num_idm_vehicles $n --compile --cudagraphs
         else
             python $script --seed=$seed
         fi
