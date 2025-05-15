@@ -31,7 +31,6 @@ class MovingExampleManager(BaseManager):
     def __init__(self):
         super().__init__()
         self.generated_v = None
-        self.rng = np.random.default_rng()
 
         # ===== Access the parameters in engine.global_config =====
         self.num_idm_victims = self.engine.global_config["num_idm_victims"]
@@ -46,9 +45,11 @@ class MovingExampleManager(BaseManager):
 
     def reset(self) -> None:
         """Reset the environment."""
+        self.scenario_seed = self.engine.global_config["scenario_seed"]
+        rng = np.random.default_rng(self.scenario_seed)
         for i in range(self.num_idm_victims):
             # spawn victim vehicles
-            lat_offset = self.rng.uniform(0, 3 * 3)
+            lat_offset = rng.uniform(0, 3 * 3)
             obj = self.spawn_object(
                 DefaultVehicle,
                 vehicle_config=dict(),
@@ -94,14 +95,16 @@ class AdversaryMetaDriveEnv(MetaDriveEnv):
                 num_idm_victims=5,
                 victim_crash_reward=10.0,
                 ego_crash_penalty=10.0,
-                forward_reward=0.05,
+                forward_reward=1.0,
                 speed_reward=0.1,
+                scenario_seed=0,
             ),
         )
         return cfg
 
     def reset(self, seed: int, options: Any = None) -> tuple:  # noqa: ARG002
         """Call the parent reset method."""
+        self.config["scenario_seed"] = seed
         obs, info = super().reset(seed)
         return obs, info
 
@@ -116,14 +119,12 @@ class AdversaryMetaDriveEnv(MetaDriveEnv):
             return -self.config["ego_crash_penalty"], step_info
 
         behind_crashes = 0
-        long_ego, _ = ego.navigation.current_ref_lanes[0].local_coordinates(ego.position)
 
         # victim crash reward
         for obj_id, obj in self.engine.get_objects().items():
             if obj_id == vehicle_id:
                 continue
-            long_v, _ = obj.lane.local_coordinates(obj.position)
-            if long_v < long_ego - 1.0 and (obj.crash_vehicle or obj.crash_object or obj.crash_sidewalk):
+            if obj.crash_vehicle or obj.crash_object or obj.crash_sidewalk:
                 behind_crashes += 1
 
         # positive reward is linear in number of victim crashes this step
@@ -143,6 +144,17 @@ class AdversaryMetaDriveEnv(MetaDriveEnv):
 
         reward = dense_reward + sparse_reward
         return reward, step_info
+
+    def done_function(self, vehicle_id: str) -> tuple[bool, dict]:
+        """Define done function for adversary vehicles."""
+        super().done_function(vehicle_id)
+        done, info = super().done_function(vehicle_id)
+        for obj_id, obj in self.engine.get_objects().items():
+            if obj_id == vehicle_id:
+                continue
+            if obj.crash_vehicle or obj.crash_object or obj.crash_sidewalk:
+                done = True
+        return done, info
 
 
 # %%
