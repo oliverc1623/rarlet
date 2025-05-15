@@ -88,7 +88,7 @@ class AdversaryMetaDriveEnv(MetaDriveEnv):
             dict(
                 traffic_density=0.0,
                 decision_repeat=5,
-                crash_vehicle_done=False,
+                crash_vehicle_done=True,
                 out_of_road_done=True,
                 map="SSS",
                 num_idm_victims=5,
