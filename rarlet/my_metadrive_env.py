@@ -4,6 +4,7 @@ import numpy as np
 from metadrive.component.vehicle.vehicle_type import DefaultVehicle
 from metadrive.envs import MetaDriveEnv
 from metadrive.manager import BaseManager
+from metadrive.policy.expert_policy import ExpertPolicy
 from metadrive.policy.idm_policy import IDMPolicy
 
 
@@ -51,10 +52,19 @@ class MovingExampleManager(BaseManager):
             obj = self.spawn_object(
                 DefaultVehicle,
                 vehicle_config=dict(),
-                position=(i * 8, lat_offset),
+                position=(i * 10, lat_offset),
                 heading=0,
             )
             self.add_policy(obj.id, IDMPolicy, obj, self.generate_seed())
+
+        # add ppo policy protagonist
+        obj = self.spawn_object(
+            DefaultVehicle,
+            vehicle_config=dict(use_special_color=True),
+            position=(0, 0),
+            heading=0,
+        )
+        self.add_policy(obj.id, ExpertPolicy, obj, self.generate_seed())
 
     def after_step(self, *args, **kwargs) -> None:  # noqa: ANN003, ARG002, ANN002
         """Update the state of all spawned objects."""
@@ -94,20 +104,6 @@ class AdversaryMetaDriveEnv(MetaDriveEnv):
         """Call the parent reset method."""
         obs, info = super().reset(seed)
         return obs, info
-
-    def spawn_victims(self) -> None:
-        """Spawn victim vehicles in the environment."""
-        lane = self.agent.lane
-        for k in range(self.config["num_idm_victims"]):
-            # spawn victim vehicles
-            obj = self.spawn_object(
-                DefaultVehicle,
-                vehicle_config=dict(),
-                lane=lane,
-                position=(-10 * k, 0),
-                heading=0,
-            )
-            self.add_policy(obj.id, IDMPolicy, obj, self.generate_seed())
 
     def reward_function(self, vehicle_id: str) -> float:
         """Define reward function for adversary vehicles."""
