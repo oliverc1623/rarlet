@@ -5,6 +5,7 @@ from metadrive.component.vehicle.vehicle_type import DefaultVehicle
 from metadrive.envs import MetaDriveEnv
 from metadrive.manager.traffic_manager import TrafficManager
 from metadrive.policy.expert_policy import ExpertPolicy
+from metadrive.scenario.utils import get_type_from_class
 
 
 class CustomMetaDriveEnv(MetaDriveEnv):
@@ -33,9 +34,10 @@ class MovingExampleManager(TrafficManager):
         for lane in self.respawn_lanes:
             _traffic_vehicles = []
             total_num = int(lane.length / self.VEHICLE_GAP)
-            vehicle_longs = [i * self.VEHICLE_GAP for i in range(total_num)]
+            vehicle_longs = [i * self.VEHICLE_GAP for i in range(1, total_num + 1)]
             self.np_random.shuffle(vehicle_longs)
-            for long in vehicle_longs[: int(np.ceil(traffic_density * len(vehicle_longs)))]:
+            v = vehicle_longs[: int(np.ceil(traffic_density * len(vehicle_longs)))]
+            for long in v:
                 vehicle_type = self.random_vehicle_type()
                 traffic_v_config = {"spawn_lane_index": lane.index, "spawn_longitude": long}
                 traffic_v_config.update(self.engine.global_config["traffic_vehicle_config"])
@@ -104,7 +106,7 @@ class AdversaryMetaDriveEnv(MetaDriveEnv):
         for obj_id, obj in self.engine.get_objects().items():
             if obj_id == vehicle_id:
                 continue
-            if obj.crash_vehicle or obj.crash_object or obj.crash_sidewalk:
+            if (get_type_from_class(type(obj)) == "VEHICLE") and (obj.crash_vehicle or obj.crash_object or obj.crash_sidewalk):
                 behind_crashes += 1
 
         # positive reward is linear in number of victim crashes this step
@@ -132,7 +134,7 @@ class AdversaryMetaDriveEnv(MetaDriveEnv):
         for obj_id, obj in self.engine.get_objects().items():
             if obj_id == vehicle_id:
                 continue
-            if obj.crash_vehicle or obj.crash_object or obj.crash_sidewalk:
+            if (get_type_from_class(type(obj)) == "VEHICLE") and (obj.crash_vehicle or obj.crash_object or obj.crash_sidewalk):
                 done = True
         return done, info
 
