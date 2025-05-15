@@ -43,7 +43,7 @@ class Args:
     """whether to capture videos of the agent performances (check out `videos` folder)"""
     num_envs: int = 1
     """number of parallel environments"""
-    num_idm_vehicles: int = 0
+    traffic_density: float = 0
     """number of IDM vehicles in the environment"""
 
     # Algorithm specific arguments
@@ -93,18 +93,18 @@ def make_env(seed: int) -> callable:
         env = AdversaryMetaDriveEnv(
             dict(
                 map="SSSS",
-                horizon=250,
-                # scenario setting
-                random_spawn_lane_index=False,
+                horizon=125,
+                random_spawn_lane_index=True,
                 num_scenarios=args.num_envs,
                 start_seed=seed,
-                traffic_density=0.0,
-                accident_prob=0,
+                traffic_density=args.traffic_density,
+                accident_prob=0.0,
                 log_level=50,
                 vehicle_config=dict(
-                    spawn_longitude=150,
+                    spawn_longitude=100,
+                    spawn_velocity=(5, 0),
                 ),
-                num_idm_victims=args.num_idm_vehicles,
+                traffic_mode="basic",
             ),
         )
         env = gym.wrappers.RecordEpisodeStatistics(env)
