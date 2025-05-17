@@ -102,7 +102,6 @@ def make_env(seed: int) -> callable:
                 log_level=50,
                 vehicle_config=dict(
                     spawn_longitude=100,
-                    spawn_velocity=(5, 0),
                 ),
                 traffic_mode="basic",
             ),

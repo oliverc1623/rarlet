@@ -77,7 +77,7 @@ class AdversaryMetaDriveEnv(MetaDriveEnv):
                 crash_vehicle_done=True,
                 out_of_road_done=True,
                 map="SSS",
-                victim_crash_reward=10.0,
+                victim_crash_reward=20.0,
                 ego_crash_penalty=10.0,
                 forward_reward=1.0,
                 speed_reward=1.0,
