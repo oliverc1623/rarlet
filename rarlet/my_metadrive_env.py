@@ -79,8 +79,11 @@ class AdversaryMetaDriveEnv(MetaDriveEnv):
                 map="SSS",
                 victim_crash_reward=10.0,
                 ego_crash_penalty=10.0,
-                forward_reward=0.1,
-                speed_reward=0.1,
+                forward_reward=1.0,
+                speed_reward=1.0,
+                living_penalty=0.1,
+                brake_trigger_dist=10.0,
+                k_brake=2.0,
             ),
         )
         return cfg
@@ -91,8 +94,8 @@ class AdversaryMetaDriveEnv(MetaDriveEnv):
         return obs, info
 
     def _distance(self, point1: tuple[float, float], point2: tuple[float, float]) -> float:
-        """Calculate the distance between two points."""
-        return np.sqrt((point1[0] - point2[0]) ** 2 + (point1[1] - point2[1]) ** 2)
+        """Calculate the longitudinal distance between two points."""
+        return point1[0] - point2[0]
 
     def reward_function(self, vehicle_id: str) -> float:
         """Define reward function for adversary vehicles."""
