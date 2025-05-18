@@ -104,7 +104,7 @@ class AdversaryMetaDriveEnv(MetaDriveEnv):
 
         # ego crash penalty
         if ego.crash_vehicle or ego.crash_object or ego.crash_sidewalk or self._is_out_of_road(ego):
-            step_info.update(ego_crashed=True, behind_crashes=0)
+            step_info.update(ego_crashed=True, behind_crashes=0, forward_reward=0.0, speed_reward=0.0, brake_reward=0.0, min_dist=0, acceleration=0.0)
             return -self.config["ego_crash_penalty"], step_info
 
         behind_crashes = 0
@@ -112,11 +112,12 @@ class AdversaryMetaDriveEnv(MetaDriveEnv):
         # victim crash reward
         min_dist = float("inf")
         for obj_id, obj in self.engine.get_objects().items():
-            if obj_id == vehicle_id:
+            if obj_id == ego.id:
+                print("ignoring ego vehicle")
                 continue
             if (get_type_from_class(type(obj)) == "VEHICLE") and (obj.crash_vehicle or obj.crash_object or obj.crash_sidewalk):
                 behind_crashes += 1
-            if get_type_from_class(type(obj)) == "VEHICLE":
+            if get_type_from_class(type(obj)) == "VEHICLE" and obj_id != ego.id:
                 dist = self._distance(ego.position, obj.position)
                 if dist < min_dist:
                     min_dist = dist
@@ -135,19 +136,19 @@ class AdversaryMetaDriveEnv(MetaDriveEnv):
         long_now, lateral_now = ego.lane.local_coordinates(ego.position)
         forward_progress = long_now - long_last
         forward_r = self.config["forward_reward"] * forward_progress
+        step_info["forward_reward"] = forward_r
 
         # speed reward
         speed_factor = ego.speed_km_h / ego.max_speed_km_h
         speed_r = self.config["speed_reward"] * speed_factor
+        step_info["speed_reward"] = speed_r
 
         # brake reward
-        v_now = ego.speed
-        v_last = ego.last_speed
-        speed_diff = v_now - v_last
-        a_long = speed_diff / 0.02
-
+        acceleration = ego.throttle_brake
         near = min_dist < self.config["brake_trigger_dist"]
-        brake_r = self.config["k_brake"] * max(0.0, -a_long) * near
+        step_info["min_dist"] = min_dist
+        brake_r = self.config["k_brake"] * max(0.0, -acceleration) * near
+        step_info["brake_reward"] = brake_r
 
         dense_reward = forward_r + speed_r + living_cost + brake_r
 
