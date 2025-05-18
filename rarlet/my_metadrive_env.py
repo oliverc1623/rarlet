@@ -113,7 +113,6 @@ class AdversaryMetaDriveEnv(MetaDriveEnv):
         min_dist = float("inf")
         for obj_id, obj in self.engine.get_objects().items():
             if obj_id == ego.id:
-                print("ignoring ego vehicle")
                 continue
             if (get_type_from_class(type(obj)) == "VEHICLE") and (obj.crash_vehicle or obj.crash_object or obj.crash_sidewalk):
                 behind_crashes += 1
