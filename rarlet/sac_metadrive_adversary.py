@@ -53,6 +53,13 @@ class Args:
     log_level: int = 50
     spawn_longitude: float = 100.0
     traffic_mode: str = "basic"
+    victim_crash_reward: float = 20.0
+    ego_crash_penalty: float = 10.0
+    forward_reward: float = 0.5
+    speed_reward: float = 0.75
+    living_penalty: float = 0.5
+    brake_trigger_dist: float = 10.0
+    k_brake: float = 2.0
 
     # Algorithm specific arguments
     env_id: str = "S-Map"
@@ -256,7 +263,7 @@ if __name__ == "__main__":
         alpha = torch.as_tensor(args.alpha, device=device)
 
     envs.single_observation_space.dtype = np.float32
-    rb = ReplayBuffer(storage=LazyTensorStorage(args.buffer_size // args.num_envs, device=device))
+    rb = ReplayBuffer(storage=LazyTensorStorage(args.buffer_size, device=device))
 
     def batched_qf(params: any, obs: any, action: any, next_q_value=None) -> torch.Tensor:  # noqa: ANN001
         """Compute the Q-value for a batch of observations and actions using the provided parameters."""
