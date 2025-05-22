@@ -357,6 +357,7 @@ if __name__ == "__main__":
     avg_returns = deque(maxlen=20)
     desc = ""
     episode_start = np.zeros(envs.num_envs, dtype=bool)
+    victim_crashes = deque(maxlen=20)
 
     for iter_indx in pbar:
         global_step = iter_indx * args.num_envs
@@ -385,6 +386,7 @@ if __name__ == "__main__":
             for ep_return, _ in zip(episodic_returns, episodic_lengths, strict=False):
                 max_ep_ret = max(max_ep_ret, ep_return)
                 avg_returns.append(ep_return)
+                victim_crashes.append(infos["behind_crashes"])
                 desc = f"global_step={global_step}, episodic_return={torch.tensor(avg_returns).mean(): 4.2f}, (max={max_ep_ret: 4.2f})"
 
         # TRY NOT TO MODIFY: save data to reply buffer; handle `final_observation`
@@ -433,6 +435,7 @@ if __name__ == "__main__":
                         "actor_loss": out_main["actor_loss"].mean(),
                         "alpha_loss": out_main.get("alpha_loss", 0),
                         "qf_loss": out_main["qf_loss"].mean(),
+                        "victim_crahses": np.mean(victim_crashes),
                     }
                 wandb.log(
                     {
