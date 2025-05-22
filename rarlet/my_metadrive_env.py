@@ -95,7 +95,7 @@ class AdversaryMetaDriveEnv(MetaDriveEnv):
 
     def _distance(self, point1: tuple[float, float], point2: tuple[float, float]) -> float:
         """Calculate the longitudinal distance between two points."""
-        return point1[0] - point2[0]
+        return abs(point1[0] - point2[0])
 
     def reward_function(self, vehicle_id: str) -> float:
         """Define reward function for adversary vehicles."""
@@ -103,7 +103,7 @@ class AdversaryMetaDriveEnv(MetaDriveEnv):
         step_info = dict()
 
         # ego crash penalty
-        if ego.crash_vehicle or ego.crash_object or ego.crash_sidewalk or self._is_out_of_road(ego):
+        if ego.crash_vehicle or ego.crash_object:  # or ego.crash_sidewalk or self._is_out_of_road(ego):
             step_info.update(ego_crashed=True, behind_crashes=0, forward_reward=0.0, speed_reward=0.0, brake_reward=0.0, min_dist=0, acceleration=0.0)
             return -self.config["ego_crash_penalty"], step_info
 
@@ -116,7 +116,7 @@ class AdversaryMetaDriveEnv(MetaDriveEnv):
                 continue
             if (get_type_from_class(type(obj)) == "VEHICLE") and (obj.crash_vehicle or obj.crash_object or obj.crash_sidewalk):
                 behind_crashes += 1
-            if get_type_from_class(type(obj)) == "VEHICLE" and obj_id != ego.id:
+            if get_type_from_class(type(obj)) == "VEHICLE" and obj_id != ego.id and ego.lane == obj.lane:
                 dist = self._distance(ego.position, obj.position)
                 if dist < min_dist:
                     min_dist = dist
@@ -156,9 +156,12 @@ class AdversaryMetaDriveEnv(MetaDriveEnv):
     def done_function(self, vehicle_id: str) -> tuple[bool, dict]:
         """Define done function for adversary vehicles."""
         super().done_function(vehicle_id)
+        ego = self.agents[vehicle_id]
         done, info = super().done_function(vehicle_id)
+        if ego.crash_sidewalk or self._is_out_of_road(ego):
+            done = False
         for obj_id, obj in self.engine.get_objects().items():
-            if obj_id == vehicle_id:
+            if obj_id == ego.id:
                 continue
             if (get_type_from_class(type(obj)) == "VEHICLE") and (obj.crash_vehicle or obj.crash_object or obj.crash_sidewalk):
                 done = True
