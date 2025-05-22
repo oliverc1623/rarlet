@@ -145,7 +145,6 @@ class AdversaryMetaDriveEnv(MetaDriveEnv):
         # brake reward
         acceleration = ego.throttle_brake
         near = min_dist < self.config["brake_trigger_dist"]
-        step_info["min_dist"] = min_dist
         brake_r = self.config["k_brake"] * max(0.0, -acceleration) * near
         step_info["brake_reward"] = brake_r
 
