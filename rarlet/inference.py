@@ -65,24 +65,25 @@ class Actor(nn.Module):
 
 
 # %%
-seed = 47
+seed = 1
 num_envs = 1
 
 env = AdversaryMetaDriveEnv(
     dict(
         map="SSSS",
-        horizon=500,
+        horizon=125,
         # scenario setting
-        random_spawn_lane_index=False,
-        num_scenarios=8,
-        start_seed=seed,
+        random_spawn_lane_index=True,
+        num_scenarios=1,
+        start_seed=1,
         traffic_density=0.0,
-        accident_prob=0,
+        accident_prob=0.0,
         log_level=50,
         vehicle_config=dict(
-            spawn_longitude=150,
+            spawn_longitude=100,
+            spawn_velocity=(5, 0),
         ),
-        num_idm_victims=1,
+        traffic_mode="basic",
     ),
 )
 
@@ -94,7 +95,7 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 
 protagonist = Actor(env, device=device, n_act=n_act, n_obs=n_obs)
 protagonist.load_state_dict(
-    torch.load("../../../pvcvolume/rarlet/protagonist_models/SSSS__adversary0__1__True__True_actor.pt"),
+    torch.load("../../../pvcvolume/rarlet/protagonist_models/S-Map__sac_metadrive_adversary__1__True__True_actor.pt"),
 )
 
 # %%
@@ -131,6 +132,6 @@ finally:
     env.close()
 
 # %%
-Image(Path.open("movies/sac_adversary_scene47.gif", "rb").read())
+Image(Path.open("movies/sac_adversary_scene1.gif", "rb").read())
 
 # %%
