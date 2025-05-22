@@ -119,6 +119,13 @@ def make_env(seed: int) -> callable:
                     spawn_longitude=args.spawn_longitude,
                 ),
                 traffic_mode=args.traffic_mode,
+                victim_crash_reward=args.victim_crash_reward,
+                ego_crash_penalty=args.ego_crash_penalty,
+                forward_reward=args.forward_reward,
+                speed_reward=args.speed_reward,
+                living_penalty=args.living_penalty,
+                brake_trigger_dist=args.brake_trigger_dist,
+                k_brake=args.k_brake,
             ),
         )
         env = gym.wrappers.RecordEpisodeStatistics(env)
@@ -434,7 +441,10 @@ if __name__ == "__main__":
                     },
                     step=global_step,
                 )
-    # save the model
+            if iter_indx % 10_000 == 0:
+                # save the model
+                torch.save(actor.state_dict(), f"../../../pvcvolume/rarlet/protagonist_models/{run_name}_actor.pt")
+                torch.save(qnet.state_dict(), f"../../../pvcvolume/rarlet/protagonist_models/{run_name}_qnet.pt")
     torch.save(actor.state_dict(), f"../../../pvcvolume/rarlet/protagonist_models/{run_name}_actor.pt")
     torch.save(qnet.state_dict(), f"../../../pvcvolume/rarlet/protagonist_models/{run_name}_qnet.pt")
     envs.close()
