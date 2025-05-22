@@ -26,11 +26,11 @@ spec:
       limits:
         memory: 32Gi
         cpu: "12"
-        nvidia.com/gpu: 1
+        nvidia.com/a6000: 1
       requests: 
         memory: 32Gi
-        cpu: "8"
-        nvidia.com/gpu: 1
+        cpu: "10"
+        nvidia.com/a6000: 1
     env:
       - name: GIT_USERNAME
         valueFrom:
@@ -58,7 +58,7 @@ spec:
           - key: kubernetes.io/hostname
             operator: In
             values:
-            - gpu-02.csusb.edu
+            - k8s-a6000-01.csus.edu
   # tolerations: 
   # - key: "nautilus.io/reservation"
   #   operator: "Equal"
