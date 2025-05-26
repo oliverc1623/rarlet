@@ -56,6 +56,7 @@ class MovingExampleManager(TrafficManager):
         }
         protagonist = self.spawn_object(DefaultVehicle, vehicle_config=protagonist_v_config)
         self.add_policy(protagonist.id, ExpertPolicy, protagonist, self.generate_seed())
+        self._traffic_vehicles.append(protagonist)
 
 
 class AdversaryMetaDriveEnv(MetaDriveEnv):
