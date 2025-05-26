@@ -28,6 +28,10 @@ def clip(a: float, low: float, high: float) -> float:
 class MovingExampleManager(TrafficManager):
     """A custom manager for the MetaDrive environment."""
 
+    def __init__(self):
+        super().__init__()
+        self.init_velo = self.engine.global_config["init_velo"]
+
     def _create_basic_vehicles(self, map, traffic_density) -> None:  # noqa: A002, ANN001, ARG002
         """Create basic vehicles for the environment with one protagonist agent."""
         total_num = len(self.respawn_lanes)
@@ -39,7 +43,7 @@ class MovingExampleManager(TrafficManager):
             v = vehicle_longs[: int(np.ceil(traffic_density * len(vehicle_longs)))]
             for long in v:
                 vehicle_type = self.random_vehicle_type()
-                traffic_v_config = {"spawn_lane_index": lane.index, "spawn_longitude": long}
+                traffic_v_config = {"spawn_lane_index": lane.index, "spawn_longitude": long, "spawn_velocity": self.init_velo}
                 traffic_v_config.update(self.engine.global_config["traffic_vehicle_config"])
                 random_v = self.spawn_object(vehicle_type, vehicle_config=traffic_v_config)
                 from metadrive.policy.idm_policy import IDMPolicy
@@ -52,7 +56,7 @@ class MovingExampleManager(TrafficManager):
             "spawn_lane_index": last_lane.index,
             "spawn_longitude": 0,
             "use_special_color": True,
-            "spawn_velocity": (0, 0),
+            "spawn_velocity": self.init_velo,
         }
         protagonist = self.spawn_object(DefaultVehicle, vehicle_config=protagonist_v_config)
         self.add_policy(protagonist.id, ExpertPolicy, protagonist, self.generate_seed())
@@ -85,6 +89,7 @@ class AdversaryMetaDriveEnv(MetaDriveEnv):
                 living_penalty=0.5,
                 brake_trigger_dist=10.0,
                 k_brake=2.0,
+                init_velo=(10, 0),
             ),
         )
         return cfg
