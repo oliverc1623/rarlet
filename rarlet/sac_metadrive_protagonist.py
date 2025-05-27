@@ -117,6 +117,7 @@ def make_env(seed: int) -> callable:
                 traffic_density=args.traffic_density,
                 accident_prob=args.accident_prob,
                 log_level=args.log_level,
+                use_lateral_reward=True,
             ),
         )
         env = gym.wrappers.RecordEpisodeStatistics(env)
@@ -199,7 +200,7 @@ class Actor(nn.Module):
 
 if __name__ == "__main__":
     args = tyro.cli(Args)
-    run_name = f"{args.env_id}__{args.exp_name}__{args.seed}__{args.compile}__{args.cudagraphs}"
+    run_name = f"{args.map}__{args.exp_name}__{args.seed}__{args.compile}__{args.cudagraphs}"
 
     wandb.init(
         project="rarlet",
