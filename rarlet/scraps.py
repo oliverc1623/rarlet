@@ -239,33 +239,33 @@ plt.imshow(ret)
 
 # %%
 
-from my_metadrive_env import AdversaryMetaDriveEnv
+from my_metadrive_env import AdversaryMetaDriveEnv, CustomMetaDriveEnv
 from IPython.display import clear_output, Image
+from metadrive.component.map.pg_map import MapGenerateMethod
+from metadrive.component.map.base_map import BaseMap
 
 # %%
-env = AdversaryMetaDriveEnv(
+map_config = {BaseMap.GENERATE_TYPE: MapGenerateMethod.BIG_BLOCK_SEQUENCE, BaseMap.GENERATE_CONFIG: "S", BaseMap.LANE_WIDTH: 3.5, BaseMap.LANE_NUM: 2}
+
+env = CustomMetaDriveEnv(
     dict(
-        map="SSSS",
-        horizon=125,
+        map_config=map_config,
+        horizon=500,
         # scenario setting
-        random_spawn_lane_index=True,
-        num_scenarios=1,
-        start_seed=1,
-        traffic_density=0.2,
+        random_spawn_lane_index=False,
+        num_scenarios=8,
+        start_seed=31,
+        traffic_density=0.0,
         accident_prob=0.0,
         log_level=50,
-        vehicle_config=dict(
-            spawn_longitude=100,
-            spawn_velocity=(5, 0),
-        ),
         traffic_mode="basic",
     )
 )
 # %%
 try:
-    env.reset(1)
+    env.reset(31)
     for _ in range(125):
-        _, r, _, _, info = env.step([0, 0])  # ego car is static
+        _, r, d, _, info = env.step([0, 1])  # ego car is static
         env.render(
             mode="topdown",
             window=False,
@@ -277,7 +277,7 @@ try:
                 "Has vehicle": bool(len(env.engine.traffic_manager.spawned_objects)),
                 "Timestep": env.episode_step,
                 "Reward": f"{r:0.2f}",
-                "Victim crashes": info["behind_crashes"],
+                "done": d,
             },
         )
     assert env
