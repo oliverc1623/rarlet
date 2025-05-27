@@ -6,6 +6,7 @@ from pathlib import Path
 import gymnasium as gym
 import torch
 import torch.nn.functional as f
+import wandb
 from IPython.display import Image
 from my_metadrive_env import AdversaryMetaDriveEnv
 from torch import nn
@@ -92,10 +93,19 @@ n_obs = math.prod(env.observation_space.shape)
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
 # %%
+wandb.login(key="82555a3ad6bd991b8c4019a5a7a86f61388f6df1")
+wandb.init(
+    project="rarlet",
+    save_code=True,
+)
 
+# %%
+best_model = wandb.restore("SSS__scraps__1__True__True_actor.pt", run_path="rarlet/poe7ht3v")
+
+# %%
 protagonist = Actor(env, device=device, n_act=n_act, n_obs=n_obs)
 protagonist.load_state_dict(
-    torch.load("../../../pvcvolume/rarlet/protagonist_models/S-Map__sac_metadrive_adversary__1__True__True_actor.pt"),
+    torch.load(best_model.name),
 )
 
 # %%
