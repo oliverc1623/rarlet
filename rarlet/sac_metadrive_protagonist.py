@@ -15,6 +15,8 @@ import torch.nn.functional as f
 import tqdm
 import tyro
 import wandb
+from metadrive.component.map.base_map import BaseMap
+from metadrive.component.map.pg_map import MapGenerateMethod
 from my_metadrive_env import CustomMetaDriveEnv
 from tensordict import TensorDict, from_module, from_modules
 from tensordict.nn import CudaGraphModule, TensorDictModule
@@ -43,6 +45,16 @@ class Args:
     """whether to capture videos of the agent performances (check out `videos` folder)"""
     num_envs: int = 1
     """number of parallel environments"""
+
+    # Environment specific arguments
+    traffic_density: float = 0
+    map: str = "SSS"
+    num_lanes: int = 2
+    horizon: int = 125
+    random_spawn_lane_index: bool = True
+    accident_prob: float = 0.0
+    log_level: int = 50
+    traffic_mode: str = "basic"
 
     # Algorithm specific arguments
     env_id: str = "S-Map"
@@ -88,17 +100,23 @@ def make_env(seed: int) -> callable:
 
     def thunk() -> gym.Env:
         """Create a gym environment."""
+        map_config = {
+            BaseMap.GENERATE_TYPE: MapGenerateMethod.BIG_BLOCK_SEQUENCE,
+            BaseMap.GENERATE_CONFIG: args.map,
+            BaseMap.LANE_WIDTH: 3.5,
+            BaseMap.LANE_NUM: args.num_lanes,
+        }
         env = CustomMetaDriveEnv(
             dict(
-                map="S",
-                horizon=500,
+                map_config=map_config,
+                horizon=args.horizon,
                 # scenario setting
-                random_spawn_lane_index=True,
-                num_scenarios=8,
+                random_spawn_lane_index=args.random_spawn_lane_index,
+                num_scenarios=args.num_envs,
                 start_seed=seed,
-                traffic_density=0.1,
-                accident_prob=0,
-                log_level=50,
+                traffic_density=args.traffic_density,
+                accident_prob=args.accident_prob,
+                log_level=args.log_level,
             ),
         )
         env = gym.wrappers.RecordEpisodeStatistics(env)
@@ -243,7 +261,7 @@ if __name__ == "__main__":
         alpha = torch.as_tensor(args.alpha, device=device)
 
     envs.single_observation_space.dtype = np.float32
-    rb = ReplayBuffer(storage=LazyTensorStorage(args.buffer_size // args.num_envs, device=device))
+    rb = ReplayBuffer(storage=LazyTensorStorage(args.buffer_size, device=device))
 
     def batched_qf(params: any, obs: any, action: any, next_q_value=None) -> torch.Tensor:  # noqa: ANN001
         """Compute the Q-value for a batch of observations and actions using the provided parameters."""
@@ -414,7 +432,10 @@ if __name__ == "__main__":
                     },
                     step=global_step,
                 )
-    # save the model
+            if iter_indx % 10_000 == 0:
+                # save the model
+                torch.save(actor.state_dict(), f"../../../pvcvolume/rarlet/protagonist_models/{run_name}_actor.pt")
+                torch.save(qnet.state_dict(), f"../../../pvcvolume/rarlet/protagonist_models/{run_name}_qnet.pt")
     torch.save(actor.state_dict(), f"../../../pvcvolume/rarlet/protagonist_models/{run_name}_actor.pt")
     torch.save(qnet.state_dict(), f"../../../pvcvolume/rarlet/protagonist_models/{run_name}_qnet.pt")
     envs.close()
