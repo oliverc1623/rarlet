@@ -18,6 +18,7 @@ for script in "${scripts[@]}"; do
                     --num-lanes 2 \
                     --no-random_spawn_lane_index \
                     --total-timesteps 1000 \
+                    --alpha 0.1 \
                     --traffic-density $density
             done
         else
