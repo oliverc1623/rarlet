@@ -27,6 +27,7 @@ from torchrl.data import LazyTensorStorage, ReplayBuffer
 warnings.filterwarnings("ignore")
 os.environ["TORCHDYNAMO_INLINE_INBUILT_NN_MODULES"] = "1"
 wandb.login(key="82555a3ad6bd991b8c4019a5a7a86f61388f6df1")
+torch.cuda.empty_cache()
 
 
 @dataclass
@@ -433,10 +434,7 @@ if __name__ == "__main__":
                     },
                     step=global_step,
                 )
-            if iter_indx % 10_000 == 0:
-                # save the model
-                torch.save(actor.state_dict(), f"../../../pvcvolume/rarlet/protagonist_models/{run_name}_actor.pt")
-                torch.save(qnet.state_dict(), f"../../../pvcvolume/rarlet/protagonist_models/{run_name}_qnet.pt")
+
     torch.save(actor.state_dict(), f"../../../pvcvolume/rarlet/protagonist_models/{run_name}_actor.pt")
     torch.save(qnet.state_dict(), f"../../../pvcvolume/rarlet/protagonist_models/{run_name}_qnet.pt")
     envs.close()

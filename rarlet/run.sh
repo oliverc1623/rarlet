@@ -17,7 +17,7 @@ for script in "${scripts[@]}"; do
                     --map "SSS" \
                     --num-lanes 2 \
                     --no-random_spawn_lane_index \
-                    --total-timesteps 1000 \
+                    --total-timesteps 500_000 \
                     --alpha 0.1 \
                     --traffic-density $density
             done
