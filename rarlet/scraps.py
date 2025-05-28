@@ -239,13 +239,18 @@ plt.imshow(ret)
 
 # %%
 
-from my_metadrive_env import AdversaryMetaDriveEnv, CustomMetaDriveEnv
+from my_metadrive_env import CustomMetaDriveEnv
 from IPython.display import clear_output, Image
 from metadrive.component.map.pg_map import MapGenerateMethod
 from metadrive.component.map.base_map import BaseMap
 
 # %%
-map_config = {BaseMap.GENERATE_TYPE: MapGenerateMethod.BIG_BLOCK_SEQUENCE, BaseMap.GENERATE_CONFIG: "S", BaseMap.LANE_WIDTH: 3.5, BaseMap.LANE_NUM: 2}
+map_config = {
+    BaseMap.GENERATE_TYPE: MapGenerateMethod.BIG_BLOCK_SEQUENCE,
+    BaseMap.GENERATE_CONFIG: "SSS",
+    BaseMap.LANE_WIDTH: 3.5,
+    BaseMap.LANE_NUM: 2,
+}
 
 env = CustomMetaDriveEnv(
     dict(
@@ -255,10 +260,9 @@ env = CustomMetaDriveEnv(
         random_spawn_lane_index=False,
         num_scenarios=8,
         start_seed=31,
-        traffic_density=0.0,
+        traffic_density=0.3,
         accident_prob=0.0,
         log_level=50,
-        traffic_mode="basic",
     )
 )
 # %%
@@ -287,5 +291,61 @@ finally:
     clear_output()
 Image(open("demo.gif", "rb").read())
 
+
+# %%
+
+from my_metadrive_env import AdversaryMetaDriveEnv
+from IPython.display import clear_output, Image
+
+# %%
+
+env = AdversaryMetaDriveEnv(
+    dict(
+        map="SSS",
+        horizon=500,
+        # scenario setting
+        random_spawn_lane_index=True,
+        num_scenarios=1,
+        start_seed=1,
+        traffic_density=0.0,
+        vehicle_config=dict(
+            spawn_longitude=70,
+            spawn_velocity=(10, 0),
+        ),
+        accident_prob=0.0,
+        log_level=50,
+        init_velo=(10, 0),
+        traffic_mode="basic",
+        speed_reward=1.0,
+    )
+)
+
+# %%
+try:
+    env.reset(1)
+    actions = [1 if i % 2 == 0 else -1 for i in range(210)]
+    for i in range(210):
+        _, r, d, t, info = env.step([0, actions[i]])  # ego car is static
+        env.render(
+            mode="topdown",
+            window=False,
+            screen_size=(400, 400),
+            camera_position=(100, 7),
+            scaling=2,
+            screen_record=True,
+            text={
+                "Has vehicle": bool(len(env.engine.traffic_manager.spawned_objects)),
+                "Timestep": env.episode_step,
+                "Reward": f"{r:0.2f}",
+                "done": d,
+                "speed reward": f"{info['speed reward']:0.2f}",
+            },
+        )
+    assert env
+    env.top_down_renderer.generate_gif()
+finally:
+    env.close()
+    clear_output()
+Image(open("demo.gif", "rb").read())
 
 # %%
