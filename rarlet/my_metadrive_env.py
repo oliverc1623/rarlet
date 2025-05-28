@@ -109,7 +109,7 @@ class AdversaryMetaDriveEnv(MetaDriveEnv):
         step_info = dict()
 
         # ego crash penalty
-        if ego.crash_vehicle or ego.crash_object:  # or ego.crash_sidewalk or self._is_out_of_road(ego):
+        if ego.crash_vehicle or ego.crash_object or ego.crash_sidewalk or self._is_out_of_road(ego):
             step_info.update(ego_crashed=True, behind_crashes=0, forward_reward=0.0, osc_reward=0.0)
             return -self.config["ego_crash_penalty"], step_info
 
