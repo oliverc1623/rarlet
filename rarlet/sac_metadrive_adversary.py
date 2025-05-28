@@ -52,6 +52,7 @@ class Args:
     accident_prob: float = 0.0
     log_level: int = 50
     spawn_longitude: float = 100.0
+    spawn_velocity: float = 10.0
     traffic_mode: str = "basic"
     victim_crash_reward: float = 20.0
     ego_crash_penalty: float = 10.0
@@ -117,6 +118,7 @@ def make_env(seed: int) -> callable:
                 log_level=50,
                 vehicle_config=dict(
                     spawn_longitude=args.spawn_longitude,
+                    spawn_velocity=(args.spawn_velocity, 0),
                 ),
                 traffic_mode=args.traffic_mode,
                 victim_crash_reward=args.victim_crash_reward,
@@ -208,7 +210,7 @@ class Actor(nn.Module):
 
 if __name__ == "__main__":
     args = tyro.cli(Args)
-    run_name = f"{args.env_id}__{args.exp_name}__{args.seed}__{args.compile}__{args.cudagraphs}"
+    run_name = f"{args.map}__{args.exp_name}__{args.seed}__{args.compile}__{args.cudagraphs}"
 
     wandb.init(
         project="rarlet",

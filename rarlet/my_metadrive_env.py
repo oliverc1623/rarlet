@@ -134,8 +134,6 @@ class AdversaryMetaDriveEnv(MetaDriveEnv):
         super().done_function(vehicle_id)
         ego = self.agents[vehicle_id]
         done, info = super().done_function(vehicle_id)
-        if ego.crash_sidewalk or self._is_out_of_road(ego):
-            done = False
         for obj_id, obj in self.engine.get_objects().items():
             if obj_id == ego.id:
                 continue
