@@ -301,13 +301,13 @@ from IPython.display import clear_output, Image
 
 env = AdversaryMetaDriveEnv(
     dict(
-        map="SSS",
-        horizon=500,
+        map="SS",
+        horizon=125,
         # scenario setting
         random_spawn_lane_index=True,
         num_scenarios=1,
         start_seed=1,
-        traffic_density=0.0,
+        traffic_density=0.2,
         vehicle_config=dict(
             spawn_longitude=70,
             spawn_velocity=(10, 0),
@@ -323,9 +323,8 @@ env = AdversaryMetaDriveEnv(
 # %%
 try:
     env.reset(1)
-    actions = [1 if i % 2 == 0 else -1 for i in range(210)]
     for i in range(210):
-        _, r, d, t, info = env.step([0, actions[i]])  # ego car is static
+        _, r, d, t, info = env.step([1, 0.2])  # ego car is static
         env.render(
             mode="topdown",
             window=False,
@@ -337,8 +336,6 @@ try:
                 "Has vehicle": bool(len(env.engine.traffic_manager.spawned_objects)),
                 "Timestep": env.episode_step,
                 "Reward": f"{r:0.2f}",
-                "done": d,
-                "speed reward": f"{info['speed reward']:0.2f}",
             },
         )
     assert env
