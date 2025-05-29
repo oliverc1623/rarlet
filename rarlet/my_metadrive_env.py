@@ -134,6 +134,10 @@ class AdversaryMetaDriveEnv(MetaDriveEnv):
             sparse_reward = 0.0
         step_info["behind_crashes"] = behind_crashes
 
+        done = self.done_function(vehicle_id)[0]
+        if done and behind_crashes == 0:
+            sparse_reward = -self.config["ego_crash_penalty"]
+
         reward = sparse_reward
         return reward, step_info
 

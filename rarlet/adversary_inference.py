@@ -71,17 +71,17 @@ num_envs = 1
 
 env = AdversaryMetaDriveEnv(
     dict(
-        map="SSS",
+        map="SS",
         horizon=125,
         # scenario setting
         random_spawn_lane_index=True,
         num_scenarios=8,
         start_seed=1,
-        traffic_density=0.0,
+        traffic_density=0.5,
         accident_prob=0.0,
         log_level=50,
         vehicle_config=dict(
-            spawn_longitude=100,
+            spawn_longitude=70,
             spawn_velocity=(10, 0),
         ),
         traffic_mode="basic",
@@ -97,7 +97,7 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 wandb.login(key="82555a3ad6bd991b8c4019a5a7a86f61388f6df1")
 
 # %%
-best_model = wandb.restore("SSS__OscillateAdversary__1__True__True_actor.pt", run_path="rarlet/j05kzb50")
+best_model = wandb.restore("SS__only-sparse__1__True__True_actor.pt", run_path="rarlet/5u8nwvw6")
 
 # %%
 protagonist = Actor(env, device=device, n_act=n_act, n_obs=n_obs)
@@ -108,7 +108,7 @@ protagonist.load_state_dict(
 # %%
 try:
     total_reward = 0
-    obs, _ = env.reset(seed)
+    obs, _ = env.reset(2)
     done = False
     trunc = False
     while not done and not trunc:
@@ -129,6 +129,7 @@ try:
                 "Timestep": env.episode_step,
                 "Reward": reward,
                 "Victim crashes": info["behind_crashes"],
+                "max_steps": info["max_step"],
             },
         )
     print(info)
@@ -140,3 +141,5 @@ finally:
 
 # %%
 Image(Path.open("movies/sac_adversary.gif", "rb").read())
+
+# %%
