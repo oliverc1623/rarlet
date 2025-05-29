@@ -113,20 +113,28 @@ class AdversaryMetaDriveEnv(MetaDriveEnv):
             step_info.update(ego_crashed=True, behind_crashes=0, forward_reward=0.0, osc_reward=0.0)
             return -self.config["ego_crash_penalty"], step_info
 
-        # oscillation reward
-        osc_reward = 0.5 * abs(ego.speed - ego.last_speed)
-        step_info["osc_reward"] = osc_reward
+        behind_crashes = 0
 
-        # forward reward
-        long_last, _ = ego.lane.local_coordinates(ego.last_position)
-        long_now, lateral_now = ego.lane.local_coordinates(ego.position)
-        forward_progress = long_now - long_last
-        forward_r = self.config["forward_reward"] * forward_progress
-        step_info["forward_reward"] = forward_r
+        # victim crash reward
+        min_dist = float("inf")
+        for obj_id, obj in self.engine.get_objects().items():
+            if obj_id == ego.id:
+                continue
+            if (get_type_from_class(type(obj)) == "VEHICLE") and (obj.crash_vehicle or obj.crash_object or obj.crash_sidewalk):
+                behind_crashes += 1
+            if get_type_from_class(type(obj)) == "VEHICLE" and obj_id != ego.id and ego.lane == obj.lane:
+                dist = self._distance(ego.position, obj.position)
+                if dist < min_dist:
+                    min_dist = dist
 
-        step_info["behind_crashes"] = 0
+        # positive reward is linear in number of victim crashes this step
+        if behind_crashes > 0:
+            sparse_reward = self.config["victim_crash_reward"]
+        else:
+            sparse_reward = 0.0
+        step_info["behind_crashes"] = behind_crashes
 
-        reward = forward_r + osc_reward
+        reward = sparse_reward
         return reward, step_info
 
     def done_function(self, vehicle_id: str) -> tuple[bool, dict]:
