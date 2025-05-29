@@ -90,6 +90,7 @@ class AdversaryMetaDriveEnv(MetaDriveEnv):
                 brake_trigger_dist=10.0,
                 k_brake=2.0,
                 init_velo=(10, 0),
+                truncate_as_terminate=True,
             ),
         )
         return cfg
