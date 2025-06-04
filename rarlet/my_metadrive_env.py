@@ -28,9 +28,10 @@ def clip(a: float, low: float, high: float) -> float:
 class MovingExampleManager(TrafficManager):
     """A custom manager for the MetaDrive environment."""
 
-    def __init__(self):
+    def __init__(self, seed: int = 0):
         super().__init__()
         self.init_velo = self.engine.global_config["init_velo"]
+        self.rseed = seed
 
     def _create_basic_vehicles(self, map, traffic_density) -> None:  # noqa: A002, ANN001, ARG002
         """Create basic vehicles for the environment with one protagonist agent."""
@@ -48,7 +49,7 @@ class MovingExampleManager(TrafficManager):
                 random_v = self.spawn_object(vehicle_type, vehicle_config=traffic_v_config)
                 from metadrive.policy.idm_policy import IDMPolicy
 
-                self.add_policy(random_v.id, IDMPolicy, random_v, self.generate_seed())
+                self.add_policy(random_v.id, IDMPolicy, random_v, self.rseed)
                 self._traffic_vehicles.append(random_v)
         # Add the protagonist vehicle
         last_lane = self.respawn_lanes[-1]
@@ -59,7 +60,7 @@ class MovingExampleManager(TrafficManager):
             "spawn_velocity": self.init_velo,
         }
         protagonist = self.spawn_object(DefaultVehicle, vehicle_config=protagonist_v_config)
-        self.add_policy(protagonist.id, ExpertPolicy, protagonist, self.generate_seed())
+        self.add_policy(protagonist.id, ExpertPolicy, protagonist, self.rseed)
         self._traffic_vehicles.append(protagonist)
 
 
@@ -69,7 +70,10 @@ class AdversaryMetaDriveEnv(MetaDriveEnv):
     def setup_engine(self) -> None:
         """Set up the engine for MetaDrive."""
         super().setup_engine()
-        self.engine.update_manager("traffic_manager", MovingExampleManager())  # replace existing traffic manager
+        self.engine.update_manager(
+            "traffic_manager",
+            MovingExampleManager(seed=self.config["start_seed"]),
+        )  # replace existing traffic manager
 
     @classmethod
     def default_config(cls) -> dict:
