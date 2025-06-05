@@ -51,7 +51,7 @@ class MovingExampleManager(TrafficManager):
                     "spawn_lane_index": lane.index,
                     "spawn_longitude": long,
                     "spawn_velocity": self.init_velo,
-                    "use_special_color": True,
+                    "use_special_color": False,
                 }
 
                 traffic_v_config.update(self.engine.global_config["traffic_vehicle_config"])
@@ -63,7 +63,7 @@ class MovingExampleManager(TrafficManager):
         last_lane = self.respawn_lanes[-1]
         protagonist_v_config = {
             "spawn_lane_index": last_lane.index,
-            "spawn_longitude": 0,
+            "spawn_longitude": -10,
             "spawn_velocity": self.init_velo,
             "use_special_color": False,
         }
