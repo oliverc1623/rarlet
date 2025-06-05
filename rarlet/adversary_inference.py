@@ -1,4 +1,4 @@
-# %% Sac Protagonist Eval
+# %% Sac Adversary Eval
 
 import math
 from pathlib import Path
@@ -8,6 +8,7 @@ import torch
 import torch.nn.functional as f
 import wandb
 from IPython.display import Image
+from metadrive.policy.idm_policy import IDMPolicy
 from my_metadrive_env import AdversaryMetaDriveEnv
 from torch import nn
 
@@ -86,6 +87,7 @@ env = AdversaryMetaDriveEnv(
         ),
         traffic_mode="basic",
         forward_reward=1.0,
+        expert_vehicle_ratio=0.0,
     ),
 )
 
@@ -97,7 +99,7 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 wandb.login(key="82555a3ad6bd991b8c4019a5a7a86f61388f6df1")
 
 # %%
-best_model = wandb.restore("SS__only-sparse__1__True__True_actor.pt", run_path="rarlet/5u8nwvw6")
+best_model = wandb.restore("SS__advo-train__1__True__True_actor.pt", run_path="rarlet/v7qpltkx")
 
 # %%
 protagonist = Actor(env, device=device, n_act=n_act, n_obs=n_obs)
@@ -106,9 +108,10 @@ protagonist.load_state_dict(
 )
 
 # %%
+seed = 2
 try:
     total_reward = 0
-    obs, _ = env.reset(2)
+    obs, _ = env.reset(seed)
     done = False
     trunc = False
     while not done and not trunc:
@@ -135,11 +138,73 @@ try:
     print(info)
     print("episode_reward", total_reward)
     total_reward = 0
-    env.top_down_renderer.generate_gif("movies/sac_adversary.gif")
+    env.top_down_renderer.generate_gif(f"movies/sac_adversary_scene_{seed:02d}.gif")
 finally:
     env.close()
 
 # %%
-Image(Path.open("movies/sac_adversary.gif", "rb").read())
+Image(Path.open(f"movies/sac_adversary_scene_{seed:02d}.gif", "rb").read())
+
+# %% RUN IDM BASELINE
+device = "cuda" if torch.cuda.is_available() else "cpu"
+seed = 2
+num_envs = 1
+
+env = AdversaryMetaDriveEnv(
+    dict(
+        map="SS",
+        horizon=125,
+        # scenario setting
+        random_spawn_lane_index=True,
+        agent_policy=IDMPolicy,
+        num_scenarios=8,
+        start_seed=1,
+        traffic_density=0.5,
+        accident_prob=0.0,
+        log_level=50,
+        vehicle_config=dict(
+            spawn_longitude=70,
+            spawn_velocity=(10, 0),
+        ),
+        traffic_mode="basic",
+        forward_reward=1.0,
+        expert_vehicle_ratio=0.0,
+    ),
+)
+
+# %%
+seed = 2
+try:
+    total_reward = 0
+    obs, _ = env.reset(seed)
+    done = False
+    trunc = False
+    while not done and not trunc:
+        obs, reward, done, trunc, info = env.step([0, 0])
+        total_reward += reward
+        ret = env.render(
+            mode="topdown",
+            screen_record=True,
+            window=False,
+            screen_size=(400, 400),
+            camera_position=(100, 7),
+            scaling=2,
+            text={
+                "Timestep": env.episode_step,
+                "Reward": reward,
+                "Victim crashes": info["behind_crashes"],
+                "max_steps": info["max_step"],
+            },
+        )
+    print(info)
+    print("episode_reward", total_reward)
+    total_reward = 0
+    env.top_down_renderer.generate_gif(f"movies/IDM_adversary_baseline_scene_{seed:02d}.gif")
+finally:
+    env.close()
+
+# %%
+Image(Path.open(f"movies/IDM_adversary_baseline_scene_{seed:02d}.gif", "rb").read())
+
 
 # %%
