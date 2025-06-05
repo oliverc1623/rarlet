@@ -296,33 +296,78 @@ Image(open("demo.gif", "rb").read())
 
 from my_metadrive_env import AdversaryMetaDriveEnv
 from IPython.display import clear_output, Image
+import gymnasium as gym
 
 # %%
 
-env = AdversaryMetaDriveEnv(
-    dict(
-        map="SS",
-        horizon=125,
-        # scenario setting
-        random_spawn_lane_index=True,
-        num_scenarios=1,
-        start_seed=1,
-        traffic_density=0.2,
-        vehicle_config=dict(
-            spawn_longitude=70,
-            spawn_velocity=(10, 0),
-        ),
-        accident_prob=0.0,
-        log_level=50,
-        init_velo=(10, 0),
-        traffic_mode="basic",
-        speed_reward=1.0,
-    )
+
+def make_env(seed: int) -> callable:
+    """Create and seed environments."""
+
+    def thunk() -> gym.Env:
+        """Create a gym environment."""
+        env = AdversaryMetaDriveEnv(
+            dict(
+                map="SS",
+                horizon=125,
+                # scenario setting
+                random_spawn_lane_index=True,
+                num_scenarios=2,
+                start_seed=seed,
+                traffic_density=0.2,
+                vehicle_config=dict(
+                    spawn_longitude=70,
+                    spawn_velocity=(10, 0),
+                ),
+                accident_prob=0.0,
+                log_level=50,
+                init_velo=(10, 0),
+                traffic_mode="basic",
+                speed_reward=1.0,
+            )
+        )
+        return env
+
+    return thunk
+
+
+seed = 1
+num_envs = 2
+env = gym.vector.AsyncVectorEnv(
+    [make_env(seed + i) for i in range(num_envs)],
+    autoreset_mode=gym.vector.AutoresetMode.SAME_STEP,
 )
 
 # %%
+
+env.reset()
+
+f1 = env.env_fns[0]()
+f1.reset(1)
+fr1 = f1.render(mode="topdown", window=False, screen_size=(400, 400), camera_position=(100, 7), scaling=2)
+f1.close()
+
+
+f2 = env.env_fns[1]()
+f2.reset(2)
+fr2 = f2.render(mode="topdown", window=False, screen_size=(400, 400), camera_position=(100, 7), scaling=2)
+f2.close()
+
+# %%
+
+import matplotlib.pyplot as plt
+
+fig, axes = plt.subplots(2, 1, figsize=(20, 10))  # You can adjust the figsize as needed
+axes[0].imshow(fr1)
+axes[0].axis("off")  # Turn off axis
+axes[0].set_title("seed 1")
+axes[1].imshow(fr2)
+axes[1].axis("off")  # Turn off axis
+axes[1].set_title("seed 2")
+
+# %%
 try:
-    env.reset(1)
+    env.reset(0)
     for i in range(210):
         _, r, d, t, info = env.step([1, 0.2])  # ego car is static
         env.render(
