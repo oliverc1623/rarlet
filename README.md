@@ -13,14 +13,32 @@
 * [PyInvoke](http://www.pyinvoke.org/)
     * For task running, because I hate `make`
 
+## Repository overview
+
+`rarlet` implements reinforcement-learning experiments centered on adversarial driving. The repository uses Poetry for dependency management and PyInvoke tasks for linting, testing and other automation.
+
+### Project layout
+
+```text
+rarlet/                      # source package
+    adversary_inference.py   # evaluate trained adversary policies
+    my_metadrive_env.py      # custom MetaDrive environments
+    sac_metadrive_*          # SAC training scripts
+    configs/                 # YAML configs for training runs
+    maps/                    # MetaDrive/Carla maps
+    scenarios/               # Scenic scenario files
+    movies/                  # example output GIFs
+run.sh / run_adversary.sh    # batch scripts to launch experiments
+tasks/                       # invoke tasks
+tests/                       # pytest tests
+```
 
 ## To get started
-1. [Create a repository from a template](https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-repository-from-a-template).
-1. Clone the new repo
-2. If poetry isn't installed, [you need to install it](https://python-poetry.org/docs/#installation).  
-3. terminal `cd` into the project
-3. run `poetry install`
-3. Run `poetry run inv setup`
+1. Clone this repository and `cd` into it.
+2. Install [Poetry](https://python-poetry.org/docs/#installation) if you don't already have it.
+3. Run `git submodule update --init` to fetch the Scenic submodule.
+4. Run `poetry install` to install dependencies.
+5. Run `poetry run inv setup` to configure pre-commit hooks and verify the environment.
     
 
 The setup will  
@@ -75,24 +93,14 @@ git merge template/main --allow-unrelated-histories
 ```
 
 
-# Installation of VerifAI and Scenic
+## Training and evaluation
 
-1. Clone the [VerifAI](https://github.com/BerkeleyLearnVerify/VerifAI) repository and [Scenic](https://github.com/BerkeleyLearnVerify/Scenic) version 2.1.0.
-2. Use python 3.8, higher versions of python might produce conflicts within some of the used libraries. 
-3. Install both repositories, first Scenic then VerifAI. Go to their folders and run `python -m pip install -e` (we recommend installing everything in a virtual environment)
-4. Download [Carla](https://carla.org/) (versions 0.9.12-0.9.15 work) 
-5. Set the environmental variables of carla and its wheel python file.
-6. Our experiments use `Town06` so make sure you install the additional maps for Carla.
-7. Download this repository.
+The repository ships with several scripts for training and evaluating agents:
 
-# Running the experiments
+- `sac_metadrive_protagonist.py` – train a protagonist policy with SAC.
+- `sac_metadrive_adversary.py` – train an adversary agent with custom rewards.
+- `sac_scenic_protagonist.py` – example training using ScenicGym.
+- `protagonist_inference.py` and `adversary_inference.py` – load saved models and render GIFs to `movies/`.
+- `run.sh` and `run_adversary.sh` – convenience scripts for launching multiple seeds.
 
-1. Activate the virtual environment where Scenic and VerifAI are installed.
-2. Open Carla simulator 
-3. To run an experiment run the python script `falsifier.py` with parameters: `--model carla` `--path path/to/scenario` eg: `--path scenarios-ddas/persistent_attack.scenic` `--e output_name` (to name the file where the falsification table will be stored) `--route folder` (to create a new folder to save the results of your simulation
-
-# Additional notes
-
-- Take into account the variable `inter_vehicle_distance` in the scenario (`.scenic` file) to specify the setpoint distance, this gives the distance between the vehicles (remember that the distances are measured from the center of mass so in reality the bumper to bumper distance is x - 4.95)
-- Remember to change the variable `verifaiSampleType` in each scenario, our experiments have test `bo`(Bayesian Optimization)  and `ce` (Cross Entropy) as of Feb/2025
-- `git submodule update --init` to intialize and update Scenic submodule in you're using the Scenic Gym branch
+Training parameters can be modified via CLI flags or configs in `configs/`.
