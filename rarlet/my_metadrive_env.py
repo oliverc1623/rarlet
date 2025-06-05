@@ -5,6 +5,7 @@ from metadrive.component.vehicle.vehicle_type import DefaultVehicle
 from metadrive.envs import MetaDriveEnv
 from metadrive.manager.traffic_manager import TrafficManager
 from metadrive.policy.expert_policy import ExpertPolicy
+from metadrive.policy.idm_policy import IDMPolicy
 from metadrive.scenario.utils import get_type_from_class
 
 
@@ -28,10 +29,11 @@ def clip(a: float, low: float, high: float) -> float:
 class MovingExampleManager(TrafficManager):
     """A custom manager for the MetaDrive environment."""
 
-    def __init__(self, seed: int = 0):
+    def __init__(self, seed: int = 0, expert_vehicle_ratio: float = 0.5):
         super().__init__()
         self.init_velo = self.engine.global_config["init_velo"]
         self.rseed = seed
+        self.expert_vehicle_ratio = clip(expert_vehicle_ratio, 0.0, 1.0)
 
     def _create_basic_vehicles(self, map, traffic_density) -> None:  # noqa: A002, ANN001, ARG002
         """Create basic vehicles for the environment with one protagonist agent."""
@@ -44,13 +46,21 @@ class MovingExampleManager(TrafficManager):
             v = vehicle_longs[: int(np.ceil(traffic_density * len(vehicle_longs)))]
             for long in v:
                 vehicle_type = self.random_vehicle_type()
-                traffic_v_config = {"spawn_lane_index": lane.index, "spawn_longitude": long, "spawn_velocity": self.init_velo}
+                policy = ExpertPolicy if self.np_random.random() < self.expert_vehicle_ratio else IDMPolicy
+                use_special_color = policy == ExpertPolicy
+
+                traffic_v_config = {
+                    "spawn_lane_index": lane.index,
+                    "spawn_longitude": long,
+                    "spawn_velocity": self.init_velo,
+                    "use_special_color": use_special_color,
+                }
+
                 traffic_v_config.update(self.engine.global_config["traffic_vehicle_config"])
                 random_v = self.spawn_object(vehicle_type, vehicle_config=traffic_v_config)
-                from metadrive.policy.idm_policy import IDMPolicy
-
-                self.add_policy(random_v.id, IDMPolicy, random_v, self.rseed)
+                self.add_policy(random_v.id, policy, random_v, self.rseed)
                 self._traffic_vehicles.append(random_v)
+
         # Add the protagonist vehicle
         last_lane = self.respawn_lanes[-1]
         protagonist_v_config = {
@@ -72,8 +82,11 @@ class AdversaryMetaDriveEnv(MetaDriveEnv):
         super().setup_engine()
         self.engine.update_manager(
             "traffic_manager",
-            MovingExampleManager(seed=self.config["start_seed"]),
-        )  # replace existing traffic manager
+            MovingExampleManager(
+                seed=self.config["start_seed"],
+                expert_vehicle_ratio=self.config["expert_vehicle_ratio"],
+            ),
+        )
 
     @classmethod
     def default_config(cls) -> dict:
@@ -95,6 +108,7 @@ class AdversaryMetaDriveEnv(MetaDriveEnv):
                 k_brake=2.0,
                 init_velo=(10, 0),
                 truncate_as_terminate=True,
+                expert_vehicle_ratio=0.5,
             ),
         )
         return cfg
