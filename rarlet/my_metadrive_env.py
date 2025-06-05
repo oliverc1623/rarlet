@@ -47,19 +47,21 @@ class MovingExampleManager(TrafficManager):
             for long in v:
                 vehicle_type = self.random_vehicle_type()
                 policy = ExpertPolicy if self.np_random.random() < self.expert_vehicle_ratio else IDMPolicy
-                use_special_color = policy == ExpertPolicy
 
                 traffic_v_config = {
                     "spawn_lane_index": lane.index,
                     "spawn_longitude": long,
                     "spawn_velocity": self.init_velo,
-                    "use_special_color": use_special_color,
+                    "use_special_color": False,
                 }
 
                 traffic_v_config.update(self.engine.global_config["traffic_vehicle_config"])
                 random_v = self.spawn_object(vehicle_type, vehicle_config=traffic_v_config)
                 self.add_policy(random_v.id, policy, random_v, self.rseed)
                 self._traffic_vehicles.append(random_v)
+                color = self.engine.COLORS_FREE.pop()
+                self.engine.id_c[random_v.id] = color
+                self.engine.c_id[color] = random_v.id
 
         # Add the protagonist vehicle
         last_lane = self.respawn_lanes[-1]
