@@ -61,6 +61,7 @@ class Args:
     living_penalty: float = 0.5
     brake_trigger_dist: float = 10.0
     k_brake: float = 2.0
+    expert_vehicle_ratio: float = 1.0
 
     # Algorithm specific arguments
     env_id: str = "S-Map"
@@ -128,6 +129,7 @@ def make_env(seed: int) -> callable:
                 living_penalty=args.living_penalty,
                 brake_trigger_dist=args.brake_trigger_dist,
                 k_brake=args.k_brake,
+                expert_vehicle_ratio=args.expert_vehicle_ratio,
             ),
         )
         env = gym.wrappers.RecordEpisodeStatistics(env)
