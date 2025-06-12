@@ -28,6 +28,7 @@ from torchrl.data import LazyTensorStorage, ReplayBuffer
 
 warnings.filterwarnings("ignore")
 os.environ["TORCHDYNAMO_INLINE_INBUILT_NN_MODULES"] = "1"
+wandb.login(key="82555a3ad6bd991b8c4019a5a7a86f61388f6df1")
 
 
 @dataclass
@@ -47,8 +48,16 @@ class Args:
     num_envs: int = 1
     """number of parallel environments"""
 
+    # Scenic specific arguments
+    scenario_file: str = "scenarios/drive.scenic"
+    """the scenario file of the task"""
+    model: str = "scenic.simulators.metadrive.model"
+    """the simulator (mdoel) of the scenario"""
+    map: str = "maps/Town06.net.xml"
+    """the map file of the task"""
+
     # Algorithm specific arguments
-    env_id: str = "HalfCheetah-v5"
+    env_id: str = "Scenic-Drive"
     """the environment id of the task"""
     total_timesteps: int = 1000000
     """total timesteps of the experiments"""
@@ -68,6 +77,8 @@ class Args:
     """the learning rate of the Q network network optimizer"""
     policy_frequency: int = 2
     """the frequency of training policy (delayed)"""
+    gradient_steps: int = 1
+    """the number of gradient steps to be taken per iteration"""
     target_network_frequency: int = 1  # Denis Yarats' implementation delays this by 2.
     """the frequency of updates for the target nerworks"""
     alpha: float = 0.2
@@ -90,14 +101,14 @@ def make_env() -> callable:
     def thunk() -> gym.Env:
         """Create a gym environment."""
         scenario = scenic.scenarioFromFile(
-            "scenarios/protagonsit.scenic",
-            model="scenic.simulators.metadrive.model",
+            args.scenario_file,
+            model=args.model,
             mode2D=True,
         )
 
         env = ScenicGymEnv(
             scenario,
-            MetaDriveSimulator(timestep=0.02, sumo_map=pathlib.Path("maps/Town06.net.xml"), render=False, real_time=False),
+            MetaDriveSimulator(timestep=0.02, sumo_map=pathlib.Path(args.map), render=False, real_time=False),
             observation_space=spaces.Box(low=-np.inf, high=np.inf, shape=(258,)),
             action_space=spaces.Box(low=-1, high=1, shape=(1,)),
             max_steps=600,
@@ -183,7 +194,7 @@ class Actor(nn.Module):
 
 if __name__ == "__main__":
     args = tyro.cli(Args)
-    run_name = f"{args.env_id}__{args.exp_name}__{args.seed}__{args.compile}__{args.cudagraphs}"
+    run_name = f"{args.scenario_file}__{args.exp_name}__{args.seed}__{args.compile}__{args.cudagraphs}"
 
     wandb.init(
         project="rarlet",
@@ -245,7 +256,7 @@ if __name__ == "__main__":
         alpha = torch.as_tensor(args.alpha, device=device)
 
     envs.single_observation_space.dtype = np.float32
-    rb = ReplayBuffer(storage=LazyTensorStorage(args.buffer_size // args.num_envs, device=device))
+    rb = ReplayBuffer(storage=LazyTensorStorage(args.buffer_size, device=device))
 
     def batched_qf(params: any, obs: any, action: any, next_q_value=None) -> torch.Tensor:  # noqa: ANN001
         """Compute the Q-value for a batch of observations and actions using the provided parameters."""
@@ -319,6 +330,9 @@ if __name__ == "__main__":
         update_main = CudaGraphModule(update_main, in_keys=[], out_keys=[])
         update_pol = CudaGraphModule(update_pol, in_keys=[], out_keys=[])
 
+    if args.gradient_steps < 0:
+        args.gradient_steps = args.policy_frequency * args.num_envs
+
     # TRY NOT TO MODIFY: start the game
     obs, _ = envs.reset()
     obs = torch.as_tensor(obs, device=device, dtype=torch.float)
@@ -347,12 +361,17 @@ if __name__ == "__main__":
         next_obs, rewards, terminations, truncations, infos = envs.step(actions)
 
         # TRY NOT TO MODIFY: record rewards for plotting purposes
-        if "final_info" in infos:
-            for r in infos["final_info"]["episode"]["r"]:
-                r = float(r)
-                max_ep_ret = max(max_ep_ret, r)
-                avg_returns.append(r)
-            desc = f"global_step={global_step}, episodic_return={torch.tensor(avg_returns).mean(): 4.2f} (max={max_ep_ret: 4.2f})"
+        if "final_info" in infos and "episode" in infos["final_info"]:
+            # Extract the mask for completed episodes
+            completed_mask = infos["final_info"]["_episode"]
+            episodic_returns = infos["final_info"]["episode"]["r"][completed_mask]
+            episodic_lengths = infos["final_info"]["episode"]["l"][completed_mask]
+
+            # Log each completed episode
+            for ep_return, _ in zip(episodic_returns, episodic_lengths, strict=False):
+                max_ep_ret = max(max_ep_ret, ep_return)
+                avg_returns.append(ep_return)
+                desc = f"global_step={global_step}, episodic_return={torch.tensor(avg_returns).mean(): 4.2f}, (max={max_ep_ret: 4.2f})"
 
         # TRY NOT TO MODIFY: save data to reply buffer; handle `final_observation`
         next_obs = torch.as_tensor(next_obs, device=device, dtype=torch.float)
@@ -380,8 +399,8 @@ if __name__ == "__main__":
         # ALGO LOGIC: training.
         if global_step > args.learning_starts:
             out_main = update_main(data)
-            if global_step % args.policy_frequency == 0:  # TD 3 Delayed update support
-                for _ in range(args.policy_frequency):  # compensate for the delay by doing 'actor_update_interval' instead of 1
+            if iter_indx % args.policy_frequency == 0:  # TD 3 Delayed update support
+                for _ in range(args.gradient_steps):  # compensate for the delay by doing 'actor_update_interval' instead of 1
                     out_main.update(update_pol(data))
 
                     alpha.copy_(log_alpha.detach().exp())
@@ -391,7 +410,7 @@ if __name__ == "__main__":
                 # lerp is defined as x' = x + w (y-x), which is equivalent to x' = (1-w) x + w y
                 qnet_target.lerp_(qnet_params.data, args.tau)
 
-            if iter_indx % (max(1, 100 // args.num_envs)) == 0 and start_time is not None:
+            if global_step % (100 * args.num_envs) == 0 and start_time is not None:
                 speed = (global_step - measure_burnin) / (time.time() - start_time)
                 pbar.set_description(f"{speed: 4.4f} sps, " + desc)
                 with torch.no_grad():
@@ -408,7 +427,8 @@ if __name__ == "__main__":
                     },
                     step=global_step,
                 )
-    # save the model
-    torch.save(actor.state_dict(), f"../../../pvcvolume/rarlet/protagonist_models/{run_name}_actor.pt")
-    torch.save(qnet.state_dict(), f"../../../pvcvolume/rarlet/protagonist_models/{run_name}_qnet.pt")
+    torch.save(actor.state_dict(), f"{run_name}_actor.pt")
+    torch.save(qnet.state_dict(), f"{run_name}_qnet.pt")
+    wandb.save(f"{run_name}_actor.pt")
+    wandb.save(f"{run_name}_qnet.pt")
     envs.close()

@@ -233,7 +233,7 @@ monitor StayInLane(obj1):
 #PLACEMENT
 ego_spawn_pt  = (100 @ -146.5)
 goal_region = RectangularRegion((250,-146.5,0), 0, 20, 20)
-ego = new Car on ego_spawn_pt, with behavior dummy_attacker()
+ego = new Car on ego_spawn_pt
 
 num_vehicles_to_place = 0
 lane_width = 3.5
