@@ -27,7 +27,6 @@ monitor Reaches(obj1, region):
                 obj1.reward = distance
             obj1.last_position = obj1.position
         wait
-    print(f"reward: {obj1.reward}")
     terminate
 
 monitor StayInLane(obj1):
