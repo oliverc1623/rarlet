@@ -8,6 +8,7 @@ param carla_map = 'Town06'
 param time_step = 1.0/10
 model scenic.simulators.metadrive.model
 param verifaiSamplerType = 'halton' # TODO: use scenic/random/uniform/halton sampler to train from scratch; then use ce for fine-tuning
+TERMINATE_TIME = 20 / globalParameters.time_step
 
 
 def not_zero(x: float, eps: float = 1e-2) -> float:
@@ -232,9 +233,9 @@ monitor StayInLane(obj1):
 #PLACEMENT
 ego_spawn_pt  = (100 @ -146.5)
 goal_region = RectangularRegion((250,-146.5,0), 0, 20, 20)
-ego = new Car on ego_spawn_pt
+ego = new Car on ego_spawn_pt, with behavior dummy_attacker()
 
-num_vehicles_to_place = 4
+num_vehicles_to_place = 0
 lane_width = 3.5
 victim_spawn_pt = (130 @ -150)
 
@@ -251,3 +252,4 @@ for i in range(num_vehicles_to_place):
 
 require monitor Reaches(ego, goal_region)
 require monitor StayInLane(ego)
+terminate when (simulation().currentTime > TERMINATE_TIME)
