@@ -1,16 +1,31 @@
 # %% Sac Protagonist Eval
 
+import gc  # garbage collect library
 import math
+import os
+import pathlib
 from pathlib import Path
 
 import gymnasium as gym
+import numpy as np
+import scenic
 import torch
 import torch.nn.functional as f
-import wandb
+from gymnasium import spaces
 from IPython.display import Image
-from my_metadrive_env import AdversaryMetaDriveEnv
+from scenic.gym.envs.scenic_gym import ScenicGymEnv
+from scenic.simulators.metadrive.simulator import MetaDriveSimulator
 from torch import nn
 
+import wandb
+
+
+gc.collect()
+with torch.no_grad():
+    torch.cuda.empty_cache()
+
+
+os.environ["MUJOCO_GL"] = "egl"  # must precede any mujoco/gym import
 
 # %%
 LOG_STD_MAX = 2
@@ -66,27 +81,35 @@ class Actor(nn.Module):
 
 
 # %%
-seed = 1
-num_envs = 1
+seed = 318
+scenario_file = "scenarios/drive.scenic"
+model = "scenic.simulators.metadrive.model"
+carla_map = "maps/Town06.net.xml"
+run_id = "ahxb61qd"
 
-env = AdversaryMetaDriveEnv(
-    dict(
-        map="SSSS",
-        horizon=125,
-        # scenario setting
-        random_spawn_lane_index=True,
-        num_scenarios=1,
-        start_seed=1,
-        traffic_density=0.0,
-        accident_prob=0.0,
-        log_level=50,
-        vehicle_config=dict(
-            spawn_longitude=100,
-            spawn_velocity=(5, 0),
-        ),
-        traffic_mode="basic",
-    ),
+scenario = scenic.scenarioFromFile(
+    scenario_file,
+    model=model,
+    mode2D=True,
 )
+
+env = ScenicGymEnv(
+    scenario,
+    MetaDriveSimulator(
+        timestep=0.02,
+        sumo_map=pathlib.Path(carla_map),
+        render=False,
+        real_time=False,
+        render3D=False,
+    ),
+    observation_space=spaces.Box(low=-np.inf, high=np.inf, shape=(258,)),
+    action_space=spaces.Box(low=-1, high=1, shape=(2,)),
+    max_steps=600,
+)
+
+video_dest_dir = Path("videos/inference/test/")
+video_dest_dir.mkdir(exist_ok=True)
+video_dest = f"{video_dest_dir}/{run_id}.gif"
 
 n_act = math.prod(env.action_space.shape)
 n_obs = math.prod(env.observation_space.shape)
@@ -94,19 +117,21 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 
 # %%
 wandb.login(key="82555a3ad6bd991b8c4019a5a7a86f61388f6df1")
-wandb.init(
-    project="rarlet",
-    save_code=True,
-)
+api = wandb.Api()
 
 # %%
-best_model = wandb.restore("SSS__scraps__1__True__True_actor.pt", run_path="rarlet/poe7ht3v")
+
+pretrained_run = api.run(f"rarlet/{run_id}")
+actor_file = next(f.name for f in pretrained_run.files() if f.name.endswith("_actor.pt"))
+model_weights = wandb.restore(actor_file, run_path=f"rarlet/{run_id}", root="models")
 
 # %%
-protagonist = Actor(env, device=device, n_act=n_act, n_obs=n_obs)
-protagonist.load_state_dict(
-    torch.load(best_model.name),
-)
+with torch.no_grad():
+    protagonist = Actor(env, device=device, n_act=n_act, n_obs=n_obs)
+    protagonist.load_state_dict(
+        torch.load(model_weights.name),
+    )
+    protagonist.eval()
 
 # %%
 try:
@@ -119,29 +144,15 @@ try:
         action, _, _ = protagonist.get_action(obs)
         action = action.squeeze().detach().cpu().numpy()
 
-        obs, reward, done, trunc, info = env.step(action)
+        obs, reward, done, trunc, info = env.step([0, 1.0])
         total_reward += reward
-        ret = env.render(
-            mode="topdown",
-            screen_record=True,
-            window=False,
-            screen_size=(400, 400),
-            camera_position=(100, 7),
-            scaling=2,
-            text={
-                "Timestep": env.episode_step,
-                "Reward": reward,
-                "Victim crashes": info["behind_crashes"],
-            },
-        )
+    assert env
+    env.simulator.client.top_down_renderer.generate_gif(video_dest)
     print(info)
     print("episode_reward", total_reward)
     total_reward = 0
-    env.top_down_renderer.generate_gif(f"movies/sac_adversary_scene{seed}.gif")
 finally:
     env.close()
 
 # %%
-Image(Path.open("movies/sac_adversary_scene1.gif", "rb").read())
-
-# %%
+Image(Path.open(video_dest, "rb").read())
