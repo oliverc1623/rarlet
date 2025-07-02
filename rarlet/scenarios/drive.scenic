@@ -207,28 +207,30 @@ behavior dummy_attacker():
 		take SetThrottleAction(1.0), SetBrakeAction(0.0), SetSteerAction(0.0)
 
 monitor Reaches(obj1, region):
-    reached = False
-    while not reached:
-        if obj1 in region:
-            obj1.reward = 10.0
-            break
-        else:
-            if obj1.last_position is not None:
-                long_now = obj1.position[0]
-                long_last = obj1.last_position[0]
-                distance = long_now - long_last
-                obj1.reward = distance
-            obj1.last_position = obj1.position
-        wait
-    terminate
+	reached = False
+	while not obj1 in region:		
+		wait
+		obj1.reward = 0.0
+		if obj1.last_position is not None:
+			long_now = obj1.position[0]
+			long_last = obj1.last_position[0]
+			distance = long_now - long_last
+			speed_reward = obj1.speed / obj1.max_speed_mps
+			obj1.reward += distance * 1.0
+			obj1.reward += speed_reward * 0.1
+		obj1.last_position = obj1.position
+		obj1.last_speed = obj1.speed
+	obj1.reward = 10.0
+	wait
+	terminate
 
 monitor StayInLane(obj1):
-    while True:
-        if not obj1._lane:
-            obj1.reward = -5.0
-            break
-        wait
-    terminate
+	while True:
+		wait
+		if not obj1._lane:
+			obj1.reward = -5.0
+			wait
+			terminate
 
 #PLACEMENT
 ego_spawn_pt  = (100 @ -146.5)
@@ -252,4 +254,4 @@ for i in range(num_vehicles_to_place):
 
 require monitor Reaches(ego, goal_region)
 require monitor StayInLane(ego)
-terminate when (simulation().currentTime > TERMINATE_TIME)
+# terminate when (simulation().currentTime > TERMINATE_TIME)
