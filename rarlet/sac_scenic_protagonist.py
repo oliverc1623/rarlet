@@ -16,7 +16,6 @@ import torch
 import torch.nn.functional as f
 import tqdm
 import tyro
-import wandb
 from gymnasium import spaces
 from scenic.gym.envs.scenic_gym import ScenicGymEnv
 from scenic.simulators.metadrive.simulator import MetaDriveSimulator
@@ -24,6 +23,8 @@ from tensordict import TensorDict, from_module, from_modules
 from tensordict.nn import CudaGraphModule, TensorDictModule
 from torch import nn, optim
 from torchrl.data import LazyTensorStorage, ReplayBuffer
+
+import wandb
 
 
 warnings.filterwarnings("ignore")
@@ -108,9 +109,9 @@ def make_env() -> callable:
 
         env = ScenicGymEnv(
             scenario,
-            MetaDriveSimulator(timestep=0.02, sumo_map=pathlib.Path(args.map), render=False, real_time=False),
+            MetaDriveSimulator(timestep=0.1, sumo_map=pathlib.Path(args.map), render=False, real_time=False),
             observation_space=spaces.Box(low=-np.inf, high=np.inf, shape=(258,)),
-            action_space=spaces.Box(low=-1, high=1, shape=(1,)),
+            action_space=spaces.Box(low=-1, high=1, shape=(2,)),
             max_steps=600,
         )
         env = gym.wrappers.RecordEpisodeStatistics(env)

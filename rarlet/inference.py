@@ -81,11 +81,11 @@ class Actor(nn.Module):
 
 
 # %%
-seed = 318
+seed = 1
 scenario_file = "scenarios/drive.scenic"
 model = "scenic.simulators.metadrive.model"
 carla_map = "maps/Town06.net.xml"
-run_id = "bvsqutwh"
+run_id = "607l9lo8"
 
 scenario = scenic.scenarioFromFile(
     scenario_file,
@@ -96,7 +96,7 @@ scenario = scenic.scenarioFromFile(
 env = ScenicGymEnv(
     scenario,
     MetaDriveSimulator(
-        timestep=0.02,
+        timestep=0.1,
         sumo_map=pathlib.Path(carla_map),
         render=True,
         real_time=False,
@@ -126,12 +126,10 @@ actor_file = next(f.name for f in pretrained_run.files() if f.name.endswith("_ac
 model_weights = wandb.restore(actor_file, run_path=f"rarlet/{run_id}", root="models")
 
 # %%
-with torch.no_grad():
-    protagonist = Actor(env, device=device, n_act=n_act, n_obs=n_obs)
-    protagonist.load_state_dict(
-        torch.load(model_weights.name),
-    )
-    protagonist.eval()
+protagonist = Actor(env, device=device, n_act=n_act, n_obs=n_obs)
+protagonist.load_state_dict(
+    torch.load(model_weights.name),
+)
 
 # %%
 try:
@@ -147,7 +145,7 @@ try:
         total_reward += reward
     assert env
     print(f"terminated reward: {reward}")
-    env.simulator.client.top_down_renderer.generate_gif(video_dest, duration=1)
+    env.simulator.client.top_down_renderer.generate_gif(video_dest)
     print(info)
     print("total reward", total_reward)
 finally:

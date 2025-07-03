@@ -207,28 +207,26 @@ behavior dummy_attacker():
 		take SetThrottleAction(1.0), SetBrakeAction(0.0), SetSteerAction(0.0)
 
 monitor Reaches(obj1, region):
-	reached = False
-	while not obj1 in region:		
-		wait
-		obj1.reward = 0.0
-		if obj1.last_position is not None:
-			long_now = obj1.position[0]
-			long_last = obj1.last_position[0]
-			distance = long_now - long_last
-			speed_reward = obj1.speed / obj1.max_speed_mps
-			obj1.reward += distance * 1.0
-			obj1.reward += speed_reward * 0.1
+	while obj1 not in region:
+		reward = 0.0
+		long_now = obj1.position[0]
+		long_last = obj1.last_position[0]
+		distance = long_now - long_last
+		speed_reward = obj1.speed / obj1.max_speed_mps
+		reward += distance * 1.0
+		reward += speed_reward * 0.1
 		obj1.last_position = obj1.position
-		obj1.last_speed = obj1.speed
-	obj1.reward = 10.0
-	wait
-	terminate
+		obj1.reward = reward
+		wait
+	obj1.reward = 10.0  # Reward for reaching the goal region
+	wait  # Wait for a moment before terminating
+	terminate  # Terminate the simulation when the goal is reached
 
 monitor StayInLane(obj1):
 	while True:
 		wait
 		if not obj1._lane:
-			obj1.reward = -5.0
+			obj1.reward = -20.0
 			wait
 			terminate
 
