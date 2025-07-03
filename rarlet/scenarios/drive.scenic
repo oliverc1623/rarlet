@@ -234,7 +234,7 @@ monitor StayInLane(obj1):
 
 #PLACEMENT
 ego_spawn_pt  = (100 @ -146.5)
-goal_region = RectangularRegion((250,-146.5,0), 0, 20, 20)
+goal_region = RectangularRegion((200,-146.5,0), 0, 10, 60)
 ego = new Car on ego_spawn_pt
 
 num_vehicles_to_place = 0
