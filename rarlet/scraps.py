@@ -14,51 +14,46 @@ from gymnasium import spaces
 from scenic.gym import ScenicGymEnv
 from scenic.simulators.metadrive import MetaDriveSimulator
 from stable_baselines3.common.utils import set_random_seed
-
-
-# %%
-
-
-def make_env() -> callable:
-    """Create a function that returns a new environment instance."""
-
-    def thunk() -> ScenicGymEnv:
-        scenario = scenic.scenarioFromFile(
-            "../scenarios/protagonsit.scenic",
-            model="scenic.simulators.metadrive.model",
-            mode2D=True,
-        )
-
-        env = ScenicGymEnv(
-            scenario,
-            MetaDriveSimulator(timestep=0.02, sumo_map=pathlib.Path("../maps/Town06.net.xml"), render=False, real_time=False),
-            observation_space=spaces.Box(low=-np.inf, high=np.inf, shape=(258,)),
-            action_space=spaces.Box(low=-1, high=1, shape=(2,)),
-            max_steps=700,
-        )
-        return env
-
-    return thunk
-
+import matplotlib.pyplot as plt
 
 # %%
 
 scenario = scenic.scenarioFromFile(
-    "scenarios/protagonsit.scenic",
+    "scenarios/drive.scenic",
     model="scenic.simulators.metadrive.model",
     mode2D=True,
 )
 
 env = ScenicGymEnv(
     scenario,
-    MetaDriveSimulator(timestep=0.02, sumo_map=pathlib.Path("maps/Town06.net.xml"), render=False, real_time=False),
+    MetaDriveSimulator(timestep=0.1, sumo_map=pathlib.Path("maps/Town06.net.xml"), render=True, real_time=False),
     observation_space=spaces.Box(low=-np.inf, high=np.inf, shape=(258,)),
     action_space=spaces.Box(low=-1, high=1, shape=(2,)),
     max_steps=600,
 )
 
 # %%
-env.reset()  # The function call you want to profile
+
+total_reward = 0
+obs, _ = env.reset(seed=1)
+done = False
+trunc = False
+for i in range(600):
+    obs, reward, done, trunc, info = env.step([0.5, 1.0])
+    total_reward += reward
+    print(f"step {i} reward {reward}, done: {done}")
+    if done or trunc:
+        break
+print(f"done: {done}, trunc: {trunc}")
+print("terminate reward", reward)
+print("total reward", total_reward)
+assert env
+print(info)
+
+# %%
+
+env.close()
+
 
 # %%
 # Assuming 'env' is your Gymnasium environment instance
