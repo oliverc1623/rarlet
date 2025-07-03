@@ -85,7 +85,7 @@ seed = 318
 scenario_file = "scenarios/drive.scenic"
 model = "scenic.simulators.metadrive.model"
 carla_map = "maps/Town06.net.xml"
-run_id = "ahxb61qd"
+run_id = "bvsqutwh"
 
 scenario = scenic.scenarioFromFile(
     scenario_file,
@@ -98,7 +98,7 @@ env = ScenicGymEnv(
     MetaDriveSimulator(
         timestep=0.02,
         sumo_map=pathlib.Path(carla_map),
-        render=False,
+        render=True,
         real_time=False,
         render3D=False,
     ),
@@ -143,16 +143,17 @@ try:
         obs = torch.as_tensor(obs, device=device, dtype=torch.float).unsqueeze(0)
         action, _, _ = protagonist.get_action(obs)
         action = action.squeeze().detach().cpu().numpy()
-
-        obs, reward, done, trunc, info = env.step([0, 1.0])
+        obs, reward, done, trunc, info = env.step(action)
         total_reward += reward
     assert env
-    env.simulator.client.top_down_renderer.generate_gif(video_dest)
+    print(f"terminated reward: {reward}")
+    env.simulator.client.top_down_renderer.generate_gif(video_dest, duration=1)
     print(info)
-    print("episode_reward", total_reward)
-    total_reward = 0
+    print("total reward", total_reward)
 finally:
     env.close()
 
 # %%
 Image(Path.open(video_dest, "rb").read())
+
+# %%
