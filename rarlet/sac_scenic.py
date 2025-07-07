@@ -110,7 +110,7 @@ def make_env() -> callable:
         env = ScenicGymEnv(
             scenario,
             MetaDriveSimulator(timestep=0.1, sumo_map=pathlib.Path(args.map), render=False, real_time=False),
-            observation_space=spaces.Box(low=-np.inf, high=np.inf, shape=(258,)),
+            observation_space=spaces.Box(low=-np.inf, high=np.inf, shape=(276,)),
             action_space=spaces.Box(low=-1, high=1, shape=(2,)),
             max_steps=600,
         )
@@ -195,7 +195,9 @@ class Actor(nn.Module):
 
 if __name__ == "__main__":
     args = tyro.cli(Args)
-    run_name = f"{args.scenario_file}__{args.exp_name}__{args.seed}__{args.compile}__{args.cudagraphs}"
+    scenario_file = args.scenario_file
+    scenario_file = scenario_file.split("/")[-1] if "/" in scenario_file else scenario_file
+    run_name = f"{scenario_file}__{args.exp_name}__{args.seed}__{args.compile}__{args.cudagraphs}"
 
     wandb.init(
         project="rarlet",
@@ -335,7 +337,7 @@ if __name__ == "__main__":
         args.gradient_steps = args.policy_frequency * args.num_envs
 
     # TRY NOT TO MODIFY: start the game
-    obs, _ = envs.reset()
+    obs, _ = envs.reset(seed=args.seed)
     obs = torch.as_tensor(obs, device=device, dtype=torch.float)
     num_iterations = int(args.total_timesteps // args.num_envs)
     pbar = tqdm.tqdm(range(num_iterations))
