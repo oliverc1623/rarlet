@@ -56,6 +56,8 @@ class Args:
     """the simulator (mdoel) of the scenario"""
     map: str = "maps/Town06.net.xml"
     """the map file of the task"""
+    sampler_type: str = "halton"
+    """the sampler type to use for the scenario generation, e.g. 'ce', 'halton', 'bo'"""
 
     # Algorithm specific arguments
     env_id: str = "Scenic-Drive"
@@ -105,6 +107,7 @@ def make_env(seed: int) -> callable:
             args.scenario_file,
             model=args.model,
             mode2D=True,
+            params={"verifaiSamplerType": args.sampler_type},
         )
 
         env = ScenicGymEnv(
