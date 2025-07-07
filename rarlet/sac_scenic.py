@@ -110,7 +110,7 @@ def make_env() -> callable:
         env = ScenicGymEnv(
             scenario,
             MetaDriveSimulator(timestep=0.1, sumo_map=pathlib.Path(args.map), render=False, real_time=False),
-            observation_space=spaces.Box(low=-np.inf, high=np.inf, shape=(276,)),
+            observation_space=spaces.Box(low=-np.inf, high=np.inf, shape=(258,)),
             action_space=spaces.Box(low=-1, high=1, shape=(2,)),
             max_steps=600,
         )
@@ -430,8 +430,9 @@ if __name__ == "__main__":
                     },
                     step=global_step,
                 )
+    # save the model
     torch.save(actor.state_dict(), f"{run_name}_actor.pt")
-    torch.save(qnet.state_dict(), f"{run_name}_qnet.pt")
+    torch.save(qnet_params.data.cpu(), f"{run_name}_qnet.pt")
     wandb.save(f"{run_name}_actor.pt")
     wandb.save(f"{run_name}_qnet.pt")
     envs.close()
