@@ -30,6 +30,7 @@ import wandb
 warnings.filterwarnings("ignore")
 os.environ["TORCHDYNAMO_INLINE_INBUILT_NN_MODULES"] = "1"
 wandb.login(key="82555a3ad6bd991b8c4019a5a7a86f61388f6df1")
+api = wandb.Api()
 
 
 @dataclass
@@ -48,6 +49,8 @@ class Args:
     """whether to capture videos of the agent performances (check out `videos` folder)"""
     num_envs: int = 1
     """number of parallel environments"""
+    pretrained_run_id: str = ""
+    """path to the pretrained actor model"""
 
     # Scenic specific arguments
     scenario_file: str = "scenarios/drive.scenic"
@@ -96,7 +99,7 @@ class Args:
     """Number of burn-in iterations for speed measure."""
 
 
-def make_env() -> callable:
+def make_env(seed: int) -> callable:
     """Create and seed environments."""
 
     def thunk() -> gym.Env:
@@ -110,12 +113,12 @@ def make_env() -> callable:
         env = ScenicGymEnv(
             scenario,
             MetaDriveSimulator(timestep=0.1, sumo_map=pathlib.Path(args.map), render=False, real_time=False),
-            observation_space=spaces.Box(low=-np.inf, high=np.inf, shape=(276,)),
+            observation_space=spaces.Box(low=-np.inf, high=np.inf, shape=(258,)),
             action_space=spaces.Box(low=-1, high=1, shape=(2,)),
             max_steps=600,
         )
         env = gym.wrappers.RecordEpisodeStatistics(env)
-        # TODO: seed the environment
+        env.action_space.seed(seed)
         return env
 
     return thunk
@@ -206,6 +209,10 @@ if __name__ == "__main__":
         save_code=True,
     )
 
+    pretrained_run = api.run(args.pretrained_run_id)
+    actor_file = next(f.name for f in pretrained_run.files() if f.name.endswith("_actor.pt"))
+    qnet_file = next(f.name for f in pretrained_run.files() if f.name.endswith("_qnet.pt"))
+
     # TRY NOT TO MODIFY: seeding
     random.seed(args.seed)
     np_rng = np.random.default_rng(args.seed)
@@ -216,7 +223,7 @@ if __name__ == "__main__":
 
     # env setup
     envs = gym.vector.AsyncVectorEnv(
-        [make_env() for i in range(args.num_envs)],
+        [make_env(i + args.seed) for i in range(args.num_envs)],
         autoreset_mode=gym.vector.AutoresetMode.SAME_STEP,
     )
     n_act = math.prod(envs.single_action_space.shape)
@@ -225,7 +232,16 @@ if __name__ == "__main__":
 
     max_action = float(envs.single_action_space.high[0])
 
+    pretrained_actor_file = wandb.restore(actor_file, run_path=args.pretrained_run_id)
+    pretrained = torch.load(pretrained_actor_file.name, map_location=device)
+
     actor = Actor(envs, device=device, n_act=n_act, n_obs=n_obs)
+
+    # copy first layer weights and biases from pretrained actor
+    with torch.no_grad():
+        actor.fc1.weight.copy_(pretrained["fc1.weight"])
+        actor.fc1.bias.copy_(pretrained["fc1.bias"])
+
     actor_detach = Actor(envs, device=device, n_act=n_act, n_obs=n_obs)
     # Copy params to actor_detach without grad
     from_module(actor).data.to_module(actor_detach)
@@ -245,6 +261,17 @@ if __name__ == "__main__":
         return qnet_params, qnet_target, qnet
 
     qnet_params, qnet_target, qnet = get_q_params()
+
+    # load pretrained qnet params
+    pretrained_qnet = wandb.restore(qnet_file, run_path=args.pretrained_run_id)
+    pretrained_qnet_tensordict = torch.load(pretrained_qnet.name, map_location=device)
+
+    # copy first layer weights and biases from pretrained qnet params
+    with torch.no_grad():
+        qnet_params["fc1", "weight"].copy_(pretrained_qnet_tensordict["fc1", "weight"])
+        qnet_params["fc1", "bias"].copy_(pretrained_qnet_tensordict["fc1", "bias"])
+
+    qnet_target.copy_(qnet_params.data)
 
     q_optimizer = optim.Adam(qnet.parameters(), lr=args.q_lr, capturable=args.cudagraphs and not args.compile)
     actor_optimizer = optim.Adam(list(actor.parameters()), lr=args.policy_lr, capturable=args.cudagraphs and not args.compile)
@@ -430,8 +457,9 @@ if __name__ == "__main__":
                     },
                     step=global_step,
                 )
+    # save the model
     torch.save(actor.state_dict(), f"{run_name}_actor.pt")
-    torch.save(qnet.state_dict(), f"{run_name}_qnet.pt")
+    torch.save(qnet_params.data.cpu(), f"{run_name}_qnet.pt")
     wandb.save(f"{run_name}_actor.pt")
     wandb.save(f"{run_name}_qnet.pt")
     envs.close()
