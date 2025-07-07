@@ -3,7 +3,6 @@
 import math
 import numpy as np
 from metadrive.policy.idm_policy import IDMPolicy
-from controllers.lateral_control import LateralControl
 
 param map = localPath('../maps/Town06.xodr')
 param carla_map = 'Town06'
@@ -12,7 +11,7 @@ model scenic.simulators.metadrive.model
 param verifaiSamplerType = 'halton' # TODO: use scenic/random/uniform/halton sampler to train from scratch; then use ce for fine-tuning
 
 #CONSTANTS
-TERMINATE_TIME = 40 / globalParameters.time_step
+TERMINATE_TIME = 30 / globalParameters.time_step
 
 def not_zero(x: float, eps: float = 1e-2) -> float:
     if abs(x) > eps:
@@ -205,18 +204,45 @@ behavior IDM_MOBIL(id, politeness=0.25):
 			take SetThrottleAction(throttle), SetBrakeAction(brake), SetSteerAction(current_steer_angle)
 			past_steer_angle = current_steer_angle
 
-behavior dummy_attacker():
+#MONITORS
+monitor EgoCrashPenalty(obj):
+	"""Monitor to penalize the ego vehicle for crashing."""
+	metaDriveActor = obj.metaDriveActor
 	while True:
-		take SetThrottleAction(1.0), SetBrakeAction(0.0), SetSteerAction(0.0)
+		if metaDriveActor.crash_vehicle or metaDriveActor.crash_object or metaDriveActor.crash_sidewalk or not obj._lane:
+			obj.reward = -5.0  # Penalty for crashing
+			wait
+			terminate  # Terminate the simulation when the ego crashes
+		wait
+
+monitor VictimCrashes(ego_car, victim_vehicles: list):
+	"""Monitor to terminate the simulation when any victim vehicle crashes."""
+	while True:
+		if (any((v.metaDriveActor.crash_vehicle or v.metaDriveActor.crash_object or v.metaDriveActor.crash_sidewalk or not v._lane) for v in victim_vehicles)
+				and not ego_car.metaDriveActor.crash_vehicle):
+			for v in victim_vehicles:
+				ego_car.reward = 10.0  # Penalty for crashing
+			wait
+			terminate  # Terminate the simulation when any victim vehicle crashes
+		wait
+
+monitor TruncateEgo(ego_car):
+	"""Monitor to terminate the simulation after a certain time."""
+	while True:
+		if simulation().currentTime > TERMINATE_TIME:
+			ego_car.reward = -5.0  # Penalty for not reaching the goal in time
+			wait
+			terminate  # Terminate the simulation when the time limit is reached
+		wait
 
 #PLACEMENT
 ego_spawn_pt  = (130 @ -150)
 victim_spawn_pt = (100 @ -150)
-num_vehicles_to_place = 6
+num_vehicles_to_place = 4
 lane_width = 3.5
 
 id = 0
-ego = new Car on ego_spawn_pt, with velocity (15, 5)
+ego = new Car on ego_spawn_pt, with velocity (10, 5)
 
 lane_group = network.laneGroupAt(victim_spawn_pt)
 
@@ -230,11 +256,6 @@ for i in range(num_vehicles_to_place):
 require always (distance from ego.position to c1.position) > 4.99
 terminate when ego.lane == None 
 '''
-terminate when (simulation().currentTime > TERMINATE_TIME)
-terminate when ego.metaDriveActor.crash_vehicle
-terminate when ego._lane == None
-terminate when any(v.metaDriveActor.crash_vehicle for v in victim_vehicles)
-
-
-# terminate when (distance from c1 to c2) < 4.5
-# terminate when (distance from c2 to c3) < 4.5
+require monitor EgoCrashPenalty(ego)
+require monitor VictimCrashes(ego, victim_vehicles)
+require monitor TruncateEgo(ego)
