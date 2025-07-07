@@ -96,7 +96,7 @@ class Args:
     """Number of burn-in iterations for speed measure."""
 
 
-def make_env() -> callable:
+def make_env(seed: int) -> callable:
     """Create and seed environments."""
 
     def thunk() -> gym.Env:
@@ -115,7 +115,7 @@ def make_env() -> callable:
             max_steps=600,
         )
         env = gym.wrappers.RecordEpisodeStatistics(env)
-        # TODO: seed the environment
+        env.action_space.seed(seed)
         return env
 
     return thunk
@@ -216,7 +216,7 @@ if __name__ == "__main__":
 
     # env setup
     envs = gym.vector.AsyncVectorEnv(
-        [make_env() for i in range(args.num_envs)],
+        [make_env(i + args.seed) for i in range(args.num_envs)],
         autoreset_mode=gym.vector.AutoresetMode.SAME_STEP,
     )
     n_act = math.prod(envs.single_action_space.shape)
