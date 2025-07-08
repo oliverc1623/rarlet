@@ -8,7 +8,7 @@ param map = localPath('../maps/Town06.xodr')
 param carla_map = 'Town06'
 param time_step = 1.0/10
 model scenic.simulators.metadrive.model
-param verifaiSamplerType = 'halton' # TODO: use scenic/random/uniform/halton sampler to train from scratch; then use ce for fine-tuning
+param verifaiSamplerType = 'halton'
 
 #CONSTANTS
 TERMINATE_TIME = 30 / globalParameters.time_step
@@ -122,8 +122,8 @@ behavior IDM_MOBIL(id, politeness=0.25):
 	acc_factor = 1.0
 	deacc_factor = Range(-3,-1)
 	target_speed = Range(20, 22.5)
-	distance_wanted = Range(1.0, 2.0)
-	time_wanted = Range(0.1, 1.5)
+	distance_wanted = 1.0
+	time_wanted = 0.1
 	delta = Range(2, 6)
 	lane_change_min_acc_gain = 1.0
 	safe_braking_limit = 1.0
@@ -203,6 +203,29 @@ behavior IDM_MOBIL(id, politeness=0.25):
 
 			take SetThrottleAction(throttle), SetBrakeAction(brake), SetSteerAction(current_steer_angle)
 			past_steer_angle = current_steer_angle
+
+# Attack Behavior
+from controllers.acc import AccControl # importing for demonstration sake
+from controllers.lateral_control import LateralControl
+
+#EGO BEHAVIOR: Follow lane, and brake after passing a threshold distance to the leading car
+behavior Attacker(id, dt, ego_speed, lane):
+	attack_params = {
+		'amplitude_brake': amplitude_brake,
+		'amplitude_acc': amplitude_acc,
+		'frequency': frequency,
+		'attack_time': attack_time,
+		'duty_cycle': duty_cycle
+	} # TODO: define attack parameters, could change if we add lane changing/swerving
+
+	long_control = AccControl(id, dt, ego_speed, True, attack_params)
+	lat_control  = LateralControl(globalParameters.time_step) # TODO: want to add vertical control to the lateral controller
+	while True:
+		cars = [ego, c1, c2, c3] # TODO: would probably change based on the number of victim vehicles
+		b, t = long_control.compute_control(cars)
+		s = lat_control.compute_control(self, lane)
+		take SetThrottleAction(t), SetBrakeAction(b), SetSteerAction(s)
+
 
 #MONITORS
 monitor EgoCrashPenalty(obj):
